@@ -1,0 +1,768 @@
+! =======
+! READ ME
+! =======
+!
+! The generator makes simple assumptions based on variable entries, please thoroughly check: 
+!  - interface descriptions 
+!  - hostname
+!  - bandwidth statements
+!  - QoS shapers
+!  - QoS priority queue (5% of CIR assumed for VoIP)
+!  - QoS bandwidth (10% if CIR assumed for VC)
+! EIGRP 1 is assumed to be the internal routing ASN
+! Where non standard (RFC1918) addresses exist on the LAN, these will need to be added to NAT ACLs, site summaries etc.
+! Infrastructure IPs are automatically allocated - IDRs will be the first address in the /31, so core switch should be set as the second
+! 3 summary addresses are assumed (Site, Management, Infrastructure).  Any additional summaries will need to be added manually
+! When applying TACACs (at the end of the config file) - observe warnings on application of AAA authorization parameters
+! Guest Wireless routes/ NAT are not currently supported in this template
+!
+! ====
+! IPAM
+! ====
+!
+! The following IPs have been pre-assigned in this configuration.  
+! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
+!
+!
+IP Address | Hostname
+{% if dmvpn3 %}
+{{loop0_ip}} | {{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{{tunnel_3_ip}} | tu3.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{% unless mpls_inet %}
+{{ce_ip | address}} | ge0-0.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{% endunless %}
+{% if mpls_inet %}
+{{ce_ip | address}} | ge0-0-{{inet_vlan_id}}.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{{mpls_ip | address}} | ge0-0-{{mpls_vlan_id}}.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{% endif %}
+{{infrastructure_summary | host_address:0}} | ge0-1.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{{infrastructure_summary | host_address:2}} | ge0-2.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{% if dmvpn3 and dmvpn4 %}
+{{inet_pop_subnet | host_address:1}} | ge0-0-0.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{{inet_pop_subnet | host_address:3}} | ge0-0-0.{{country | downcase}}-{{site_code | downcase}}-idr01.ptns.pearson.com
+{{inet_pop_subnet | host_address:1}} | ge0-0-0.{{country | downcase}}-{{site_code | downcase}}-v01.ptns.pearson.com
+{{inet_pop_subnet | host_address:2}} | ge0-0-0.{{country | downcase}}-{{site_code | downcase}}-v02.ptns.pearson.com
+{% endunless %}
+{% endif %}
+
+
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+{{loop0_ip}} | {{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{{tunnel_4_ip}} | tu4.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{% unless mpls_inet %}
+{{ce_ip | address}} | ge0-0.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{% endunless %}
+{% if mpls_inet %}
+{{ce_ip | address}} | ge0-0-{{inet_vlan_id}}.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{{mpls_ip | address}} | ge0-0-{{mpls_vlan_id}}.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{% endif %}
+{{infrastructure_summary | host_address:4}} | ge0-1.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{{infrastructure_summary | host_address:6}} | ge0-2.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{{inet_pop_subnet | host_address:4}} | ge0-0-0.{{country | downcase}}-{{site_code | downcase}}-idr02.ptns.pearson.com
+{% endif %}
+{% endunless %}
+!
+! ======
+! CONFIG
+! ======
+!
+! //START BASE SECTION
+!
+!
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+service password-encryption
+no service pad
+service tcp-keepalives-in
+service tcp-keepalives-out
+no ip bootp server
+no ip http server
+no ip http secure-server
+no ip source-route
+no ip gratuitous-arps
+logging buffered 65536 notification
+logging trap notification
+enable secret {{enable_secret}}
+hostname {{country | downcase}}-{{site_code | downcase}}-idr01
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+hostname {{country | downcase}}-{{site_code | downcase}}-idr02
+{% endif %}
+{% endunless %}
+username netadmin privilege 15 secret {{user_secret}}
+no ip domain-lookup
+ip domain-name ptns.pearson.com
+clock timezone UTC 0
+!
+crypto key generate rsa general-keys modulus 2048
+!
+!
+ip ssh version 2       
+!
+!       
+! //END BASE SECTION
+!
+! //START LOGGING SECTION
+! //STN-08007
+!
+{% template_include logging %}  
+!
+!
+! //END LOGGING SECTION
+!
+! //START VRF INET SECTION
+!
+!
+ip vrf inet
+  description Internet
+  rd 65432:1
+!
+!
+! //END VRF INET SECTION
+!
+! //START EIGRP AUTH SECTION
+!
+!
+key chain EIGRP
+  key 1
+   key-string p3ar5on3_4
+!
+!
+! //END EIGRP AUTH SECTION
+!
+! //START QOS SECTION
+!
+!
+{% if qos_voip or qos_vc %}
+{% if qos_voip %}
+class-map match-all VoIP
+  match  dscp ef
+{% endif %}
+{% if qos_vc %}
+class-map match-all VidConf
+  match ip dscp af41
+{% endif %}
+policy-map CHILD
+{% if qos_voip %}
+ class VoIP
+  priority {{inet_cir_bps | divided_by:100000 | times:5}}
+{% endif %}
+{% if qos_vc %}
+class VidConf
+  bandwidth {{inet_cir_bps | divided_by:100000 | times:10}}
+{% endif %}
+{% endif %}
+
+policy-map QOS_INET
+  class class-default
+{% unless inet_burst_bps == "" %}
+   shape average {{inet_burst_bps | divided_by:100 | times:90}}
+{% endunless %}
+{% if inet_burst_bps == "" %}
+   shape average {{inet_cir_bps | divided_by:100 | times:90}}
+{% endif %}
+{% if qos_voip or qos_vc %}
+  service-policy CHILD
+{% endif %}
+!
+!
+! //END QOS SECTION
+!
+! //START NETFLOW SECTION
+!
+!
+{% template_include netflow %}
+!
+!
+! //END NETFLOW SECTION
+!
+! //START DMVPN CRYPTO SECTION
+!
+!
+crypto keyring DMVPN vrf inet
+  pre-shared-key address 0.0.0.0 0.0.0.0 key {{dmvpn_psk}}
+!        
+crypto isakmp policy 20
+  encr aes 256
+  authentication pre-share
+  group 14
+crypto isakmp keepalive 10
+crypto isakmp invalid-spi-recovery
+crypto isakmp profile DMVPN
+   keyring DMVPN
+   match identity address 0.0.0.0 inet
+!
+crypto ipsec transform-set PEARSON-AES256 esp-aes 256 esp-sha-hmac
+!
+crypto ipsec profile DMVPN
+  set transform-set PEARSON-AES256
+  set pfs group2
+!
+!
+! //END DMVPN CRYPTO SECTION
+!
+{% if dmvpn3 %}
+!
+! //START TUNNEL 3 SECTION
+!
+!
+interface Tunnel3
+  description [F] DMVPN 3 {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}}
+  bandwidth {{inet_cir_bps}} 
+  ip address {{tunnel_3_ip}} 255.255.252.0
+  ip flow monitor INGRESS input
+  no ip redirects
+  ip mtu 1400
+  ip authentication mode eigrp 3 md5
+  ip authentication key-chain eigrp 3 EIGRP
+  ip nhrp authentication 8cdP4*(v
+{% unless region == "EMEA" %}
+  ip nhrp nhs 172.28.12.3
+  ip nhrp map 172.28.12.3 159.182.38.28
+  ip nhrp map multicast 159.182.38.28
+  ip nhrp nhs 172.28.12.1
+  ip nhrp map 172.28.12.1 192.251.134.19
+  ip nhrp map multicast 192.251.134.19
+  ip nhrp nhs 172.28.12.11 
+  ip nhrp map 172.28.12.11 159.182.67.16
+  ip nhrp map multicast 159.182.67.16
+{% endunless %}
+{% if region == "EMEA" %}
+  ip nhrp nhs 172.28.12.5
+  ip nhrp map 172.28.12.5 159.182.79.15
+  ip nhrp map multicast 159.182.79.15
+{% endif %}
+  ip nhrp network-id 1003
+  ip nhrp holdtime 300
+  ip nhrp shortcut
+  if-state nhrp
+  ip summary-address eigrp 3 {{management_summary | address}} {{management_summary | mask}} leak-map LEAK_LOOPBACK 
+  ip summary-address eigrp 3 {{infrastructure_summary | address}} {{infrastructure_summary | mask}}
+  ip summary-address eigrp 3 {{site_summary | address}} {{site_summary | mask}}
+  ip tcp adjust-mss 1360
+{% if mpls_inet %}
+  tunnel source GigabitEthernet0/0.{{inet_vlan_id}}
+{% endif %}
+{% unless mpls_inet %}
+  tunnel source GigabitEthernet0/0
+{% endunless %}
+  tunnel mode gre multipoint
+  tunnel key 1003
+  tunnel vrf inet
+  tunnel protection ipsec profile DMVPN shared
+  cdp enable
+  qos pre-classify
+!
+!
+! //END TUNNEL 3 SECTION
+!
+{% endif %}
+{% if dmvpn4 %}
+!
+! //START TUNNEL 4 SECTION
+!
+!
+interface Tunnel4
+  description [F] DMVPN 4 {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}}
+  bandwidth {{inet_cir_bps}}
+  ip address {{tunnel_4_ip}} 255.255.252.0
+  ip flow monitor INGRESS input
+  no ip redirects
+  ip mtu 1400
+  ip authentication mode eigrp 4 md5
+  ip authentication key-chain eigrp 4 EIGRP
+  ip nhrp authentication 8cdP4*(v
+{% unless region == "EMEA" %}
+  ip nhrp nhs 172.28.16.3
+  ip nhrp map 172.28.16.3 159.182.38.29
+  ip nhrp map multicast 159.182.38.29
+  ip nhrp nhs 172.28.16.1
+  ip nhrp map 172.28.16.1 192.251.134.20
+  ip nhrp map multicast 192.251.134.20
+  ip nhrp nhs 172.28.16.11
+  ip nhrp map 172.28.16.11 159.182.67.17
+  ip nhrp map multicast 159.182.67.17
+{% endunless %}
+{% if region == "EMEA" %}
+  ip nhrp nhs 172.28.16.5
+  ip nhrp map multicast 159.182.127.15
+  ip nhrp map 172.28.16.5 159.182.127.15
+{% endif %}
+  ip nhrp network-id 1004
+  ip nhrp holdtime 300
+  ip nhrp shortcut
+  if-state nhrp
+  ip summary-address eigrp 4 {{management_summary | address}} {{management_summary | mask}} leak-map LEAK_LOOPBACK 
+  ip summary-address eigrp 4 {{infrastructure_summary | address}} {{infrastructure_summary | mask}}
+  ip summary-address eigrp 4 {{site_summary | address}} {{site_summary | mask}}
+  ip tcp adjust-mss 1360
+{% if mpls_inet %}
+  tunnel source GigabitEthernet0/0.{{inet_vlan_id}}
+{% endif %}
+{% unless mpls_inet %}
+  tunnel source GigabitEthernet0/0
+{% endunless %}
+  tunnel mode gre multipoint
+  tunnel key 1004
+  tunnel vrf inet
+  tunnel protection ipsec profile DMVPN shared
+  cdp enable
+  qos pre-classify
+!
+!
+! //END TUNNEL 4 SECTION
+!
+{% endif %}
+!
+! //START IP SLA SECTION
+!
+!
+{% template_include ip_sla %}
+!
+!
+! //END IP SLA SECTION
+!
+! //START INTERFACE SECTION
+!
+!
+interface Loopback0
+  description MGMT
+  ip address {{loop0_ip}} 255.255.255.255 
+!
+interface GigabitEthernet0/0
+  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}} ({{lec}} {{lec_circuit_id}})
+{% unless mpls_inet %}
+  ip vrf forwarding inet
+  ip address {{ce_ip | address}} {{ce_ip | mask}} 
+  bandwidth {{inet_cir_bps}}
+  service-policy output QOS_INET
+{% unless user_browse %}
+  ip access-group IPSEC in
+{% endunless %}
+{% if user_browse %}
+  ip access-group IPSEC-IA in
+  ip nat outside
+{% endif %}
+{% endunless %}
+{% if isp_sfp %}
+  media-type sfp
+{% endif %}
+  no cdp enable
+  duplex {{isp_duplex}}
+  speed {{isp_speed}}
+!
+{% if mpls_inet %}
+interface GigabitEthernet0/0.{{mpls_vlan_id}}
+  description [FM] {{isp | upcase}} {{mpls_cct_id}} {{mpls_cir_bps | short_bandwidth}} ({{isp_vrf}})
+  bandwidth {{mpls_cir_bps}}
+  encapsulation dot1Q {{mpls_vlan_id}}
+  ip address {{mpls_ip | address}} {{mpls_ip | mask}}
+  ip flow monitor INGRESS input
+{% endif %}
+!
+{% if mpls_inet %}
+interface GigabitEthernet0/0.{{inet_vlan_id}}
+  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}} ({{lec}} {{lec_circuit_id}})
+  bandwidth {{inet_cir_bps}}
+  encapsulation dot1Q {{inet_vlan_id}}
+  ip vrf forwarding inet
+  ip address {{ce_ip | address}} {{ce_ip | mask}} 
+  service-policy output QOS_INET
+{% unless user_browse %}
+  ip access-group IPSEC in
+{% endunless %}
+{% if user_browse %}
+  ip access-group IPSEC-IA in
+  ip nat outside
+{% endif %}
+{% endif %}
+!
+interface GigabitEthernet0/1
+{% if dmvpn3 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/0/1
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/0/2
+{% endif %}
+{% endunless %}
+{% if dmvpn3 %}
+  ip address {{infrastructure_summary | host_address:0}} 255.255.255.254
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+  ip address {{infrastructure_summary | host_address:4}} 255.255.255.254
+{% endif %}
+{% endunless %}
+  ip flow monitor INGRESS input
+!
+interface GigabitEthernet0/2
+{% if dmvpn3 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/0/1
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/0/2
+{% endif %}
+{% endunless %}
+{% if dmvpn3 %}
+  ip address {{infrastructure_summary | host_address:2}} 255.255.255.254
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+  ip address {{infrastructure_summary | host_address:6}} 255.255.255.254
+{% endif %}
+{% endunless %}
+  ip flow monitor INGRESS input
+!
+{% if user_browse %}
+interface GigabitEthernet0/0/0
+{% if dmvpn3 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/0/3
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/0/3
+{% endif %}
+{% endunless %}
+  ip vrf forwarding inet
+{% if dmvpn3 and dmvpn4 %}
+  ip address {{inet_pop_subnet | host_address:1}} {{inet_pop_subnet | mask}}
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn3 %}
+  ip address {{inet_pop_subnet | host_address:3}} {{inet_pop_subnet | mask}}
+{% endif %}
+{% if dmvpn4 %}
+  ip address {{inet_pop_subnet | host_address:4}} {{inet_pop_subnet | mask}}
+{% endif %}
+{% endunless %}
+  ip flow monitor INGRESS input
+  ip flow monitor EGRESS output
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn3 %}
+  standby version 2
+  standby 1 ip {{inet_pop_subnet | host_address:1}}
+  standby 1 timers 1 3
+  standby 1 priority 90
+  standby 1 preempt delay min 90
+  standby 1 authentication P3ar5on
+  standby 1 track 999
+  standby 2 ip {{inet_pop_subnet | host_address:2}}
+  standby 2 timers 1 3
+  standby 2 priority 85
+  standby 2 preempt
+  standby 2 authentication P3ar5on
+{% endif %}
+{% if dmvpn4 %}
+  standby 1 ip {{inet_pop_subnet | host_address:1}}
+  standby 1 timers 1 3
+  standby 1 priority 85
+  standby 1 preempt
+  standby 1 authentication P3ar5on
+  standby 2 ip {{inet_pop_subnet | host_address:2}}
+  standby 2 timers 1 3
+  standby 2 priority 90
+  standby 2 preempt delay min 90
+  standby 2 track 999
+  standby 2 authentication P3ar5on
+{% endif %}
+{% endunless %}
+  ip nat inside
+{% endif %}
+!
+!
+! //END INTERFACE SECTION
+!
+! //START ROUTING CONTROL IDR01 SECTION
+!
+!
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{management_summary | cidr}}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{infrastructure_summary | cidr}}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{site_summary | cidr}}
+!
+ip prefix-list LEAK_LOOPBACK permit {{loop0_ip}}/32
+!
+! ENSURE LEAK_LOOPBACK route-map IS APPLIED TO NETWORK MANAGEMENT SUMMARY
+!
+route-map LEAK_LOOPBACK permit 10
+ match ip address prefix-list LEAK_LOOPBACK
+!
+route-map E3-into-E1 deny 10
+  match tag {{tunnel_3_ip | route_tag}}
+!
+route-map E3-into-E1 deny 15
+  match ip address prefix-list PL_BLOCK_SUM_REDIST
+!
+route-map E3-into-E1 permit 20
+  set tag 31
+!
+route-map E1-into-E3 deny 10
+{% if mpls_inet %}
+  match tag 31 41 {{bgp_asn}}
+{% endif %}
+{% unless mpls_inet %}
+  match tag 31 41
+{% endunless %}
+!
+route-map E1-into-E3 permit 20
+  set tag {{tunnel_3_ip | route_tag}}
+! 
+route-map BGP-into-E1 permit 10
+set tag {{bgp_asn}}
+!
+!
+! //END ROUTING CONTROL IDRO1 SECTION
+!
+! //START ROUTING CONTROL IDRO2 SECTION
+!
+!
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{management_summary | cidr}}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{infrastructure_summary | cidr}}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{site_summary | cidr}}
+!
+ip prefix-list LEAK_LOOPBACK permit {{loop0_ip}}/32
+!
+! ENSURE LEAK_LOOPBACK route-map IS APPLIED TO NETWORK MANAGEMENT SUMMARY
+!
+route-map LEAK_LOOPBACK permit 10
+ match ip address prefix-list LEAK_LOOPBACK
+!
+route-map E4-into-E1 deny 10
+  match tag {{tunnel_4_ip | route_tag}}
+!
+route-map E4-into-E1 deny 15
+  match ip address prefix-list PL_BLOCK_SUM_REDIST
+!
+route-map E4-into-E1 permit 20
+  set tag 41
+!
+route-map E1-into-E4 deny 10
+{% if mpls_inet %}
+  match tag 31 41 {{bgp_asn}}
+{% endif %}
+{% unless mpls_inet %}
+  match tag 31 41
+{% endunless %}
+!
+route-map E1-into-E4 permit 20
+  set tag {{tunnel_4_ip | route_tag}}
+!
+!
+! //END ROUTING CONTROL IDRO2 SECTION
+!
+{% if dmvpn3 %}
+!
+! //START ROUTING IDR01 SECTION
+!
+!
+router eigrp 1
+  network {{infrastructure_summary | host_address:0}} 0.0.0.0
+  network {{infrastructure_summary | host_address:2}} 0.0.0.0
+  network {{loop0_ip}} 0.0.0.0
+  redistribute eigrp 3 route-map E3-into-E1
+{% if mpls_inet %}
+  redistribute bgp {{bgp_asn}} metric 1000000 1 255 1 1500 route-map BGP-into-E1
+{% endif %}
+!
+router eigrp 3
+  network {{tunnel_3_ip}} 0.0.0.0
+  redistribute eigrp 1 route-map E1-into-E3
+!
+{% if mpls_inet %}
+ip prefix-list {{isp | upcase}}-IN seq 5 permit 172.24.0.0/16 le 32
+!
+router bgp {{bgp_asn}}
+  bgp router-id {{loop0_ip}}
+  bgp log-neighbor-changes
+  network {{bgp_subnet | address}} mask {{bgp_subnet | mask}}
+  timers bgp 10 30
+  neighbor {{bgp_neighbor_ip}} remote-as {{bgp_remote_asn}}
+  neighbor {{bgp_neighbor_ip}} description {{isp | upcase}} MPLS
+  neighbor {{bgp_neighbor_ip}} password {{bgp_password}}
+  neighbor {{bgp_neighbor_ip}} prefix-list {{isp | upcase}}-IN in
+{% endif %}
+!
+ip route vrf inet 10.0.0.0 255.0.0.0 {{fwb_outside_ip}}
+ip route vrf inet 172.16.0.0 255.240.0.0 {{fwb_outside_ip}}
+ip route {{inet_pop_subnet | address}} {{inet_pop_subnet | mask}} {{fwb_inside_ip}} name ToVLAN900
+ip route vrf inet 0.0.0.0 0.0.0.0 {{pe_ip}}
+{% unless dmvpn3 and dmvpn4 %}
+ip route 0.0.0.0 0.0.0.0 {{fw_pop_swc}} 254 name Floating_Default_In_Band_Management
+ip route {{loop0_ip_peer}} 255.255.255.255 {{fw_pop_swc}} name idr02_Loo0
+{% endunless %}
+!
+!
+! //END ROUTING IDR01 SECTION
+!
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn4 %}
+!
+! //START ROUTING IDR02 SECTION
+!
+!
+router eigrp 1
+  network {{infrastructure_summary | host_address:4}} 0.0.0.0
+  network {{infrastructure_summary | host_address:6}} 0.0.0.0
+  network {{loop0_ip}} 0.0.0.0
+  redistribute eigrp 4 route-map E4-into-E1
+!
+router eigrp 4
+  network {{tunnel_4_ip}} 0.0.0.0 
+  redistribute eigrp 1 route-map E1-into-E4
+!
+ip route vrf inet 10.0.0.0 255.0.0.0 {{fwb_outside_ip}}
+ip route vrf inet 172.16.0.0 255.240.0.0 {{fwb_outside_ip}}
+ip route {{inet_pop_subnet | address}} {{inet_pop_subnet | mask}} {{fwb_inside_ip}} name ToVLAN900
+ip route vrf inet 0.0.0.0 0.0.0.0 {{pe_ip}}
+ip route 0.0.0.0 0.0.0.0 {{fw_pop_swc}} 254 name Floating_Default_In_Band_Management
+ip route {{loop0_ip_peer}} 255.255.255.255 {{fw_pop_swc}} name idr01_Loo0
+!
+!
+! //END ROUTING IDR02 SECTION
+!
+{% endif %}
+{% endunless %}
+!
+! //START NAT SECTION
+!
+!
+{% if user_browse %}
+ip nat translation port-timeout udp 5246 60
+ip nat translation port-timeout udp 5247 60
+ip nat translation tcp-timeout 10800
+{% if mpls_inet %}
+ip nat inside source list NAT interface GigabitEthernet0/0.{{inet_vlan_id}} vrf inet overload
+{% endif %}
+{% unless mpls_inet %}
+ip nat inside source list NAT interface GigabitEthernet0/0 vrf inet overload
+{% endunless %}
+!
+ip access-list extended NAT
+ permit ip 10.0.0.0 0.255.255.255 any
+ permit ip 172.16.0.0 0.15.255.255 any
+ permit ip 192.168.0.0 0.0.255.255 any
+{% endif %}
+!
+!
+! //END NAT SECTION
+!
+! //START ACL SECTION
+!
+!
+access-list 98 remark LoginAccess
+access-list 98 permit 10.111.0.0 0.0.255.255
+!
+access-list 99 remark SNMPManager
+access-list 99 permit 10.111.0.0 0.0.255.255
+!
+{% if user_browse %}
+ip access-list extended IPSEC-IA
+  permit esp any any
+  permit udp any eq isakmp any eq isakmp
+  permit icmp any any echo
+  permit icmp any any echo-reply
+  permit icmp any any time-exceeded
+  permit icmp any any unreachable
+  permit tcp any any established
+  deny udp any host {{ce_ip}} eq ntp
+  deny udp any any eq snmp
+  permit udp any any
+  permit tcp any gt 1024 any gt 1024
+!
+{% endif %}
+{% unless user_browse %}
+ip access-list extended IPSEC
+  permit esp any any
+  permit udp any eq isakmp any eq isakmp
+  permit icmp any any echo
+  permit icmp any any echo-reply
+  permit icmp any any time-exceeded
+  permit icmp any any unreachable
+!
+{% endunless %}
+!
+!
+! //END ACL SECTION
+!
+! //START SNMP SECTION
+! 
+!   
+{% template_include snmp %}
+!
+!
+! //END SNMP SECTION
+!
+! //NTP SECTION
+!
+!
+{% template_include ntp %}
+!
+!
+! //END NTP SECTION
+!
+!
+! //START ALIAS SECTION
+!
+{% template_include alias %}
+!
+! //END ALIAS SECTION
+!
+!
+! //START LOGIN BANNER SECTION
+!
+{% template_include banner_login %}
+!
+! //END LOGIN BANNER SECTION
+!
+!
+! //START LINE SECTION
+!
+!       
+line con 0       
+  password {{line_pass}}
+  login local
+  logging synchronous
+  exec-timeout 30 0
+!       
+line aux 0
+  password {{line_pass}}
+  login
+  logging synchronous
+  exec-timeout 30 0
+!       
+line vty 0 4
+  password {{line_pass}}
+  login local
+  logging synchronous
+  access-class 98 in
+  exec-timeout 30 0
+!       
+line 2
+transport preferred none
+transport output none
+transport input none
+!
+!
+! //END LINE SECTION
+!
+! //START TACACS SECTION
+!
+!    
+{% template_include tacacs %}
+!
+!
+! //END TACACS SECTION
+!
+! 
+! // START METADATA
+!
+!
+{% template_include banner_incoming %}
+!
+!
+! // END METADATA

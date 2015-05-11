@@ -1,0 +1,34 @@
+flow exporter PEARSON
+ description Netflow exports to Pearson tracker
+{% case region %}
+{% when 'AMER' %}
+! AMER destination server
+ destination 10.111.0.29
+{% when 'APAC' %}
+! APAC destination server
+ destination 10.111.160.26
+{% when 'EMEA' %}
+! EMEA destination server
+ destination 10.111.128.23
+{% when 'CHINA' %}
+! CHINA destination server
+ destination 10.111.165.4
+{% else %}
+ destination 10.111.0.29
+{% endcase %}
+ source Loopback0
+ transport udp 2055 
+!
+flow monitor INGRESS
+ description Replicates traditional ingress monitor
+ exporter PEARSON
+ cache timeout active 60
+ cache entries 200000
+ record netflow ipv4 original-input
+!
+flow monitor EGRESS
+ description Replicates traditional egress monitor
+ exporter PEARSON
+ cache timeout active 60
+ cache entries 200000
+ record netflow ipv4 original-output

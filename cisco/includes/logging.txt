@@ -1,0 +1,29 @@
+{% case region %}
+{% when 'APAC' %}
+! MLBDC, AU, APAC
+logging 10.111.160.5
+! SG8SV, SG, APAC
+logging 10.111.164.5
+{% when 'AMER' %}
+! IOWAC, USA, AMER
+logging 10.111.0.5
+! NJ2SV, USA, AMER
+logging 10.111.55.5
+{% when 'EMEA' %}
+! LO1SV, UK, EMEA
+logging 10.111.128.5
+! LO3SV, UK, EMEA
+logging 10.111.129.5
+{% when 'CHINA'%}
+! SH1SV, CN, CHINA
+logging 10.111.165.5
+! BJ1SV, CN, CHINA
+logging 10.111.166.5
+{% else %}
+! IOWAC, USA, AMER
+logging 10.111.0.5
+! NJ2SV, USA, AMER
+logging 10.111.55.5
+{% endcase %}
+!
+logging source-interface Loopback0

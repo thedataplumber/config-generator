@@ -1,0 +1,35 @@
+ip sla 900
+ icmp-echo 4.2.2.2
+ vrf inet
+ threshold 800
+ timeout 1000
+ frequency 5
+ip sla schedule 900 life forever start-time now
+ 
+ip sla 901
+ icmp-echo 8.8.8.8
+ vrf inet
+ threshold 800
+ timeout 1000
+ frequency 5
+ip sla schedule 901 life forever start-time now
+ 
+ip sla 902
+ icmp-echo 8.8.4.4
+ vrf inet
+ threshold 800
+ timeout 1000
+ frequency 5
+ip sla schedule 902 life forever start-time now
+ 
+track 900 ip sla 900 reachability
+ delay down 7
+track 901 ip sla 901 reachability
+ delay down 7
+track 902 ip sla 902 reachability
+ delay down 7
+track 999 list boolean or
+ object 900
+ object 901
+ object 902
+ delay down 1 up 60

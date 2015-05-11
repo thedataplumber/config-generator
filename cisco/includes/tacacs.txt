@@ -1,0 +1,40 @@
+aaa new-model
+aaa group server tacacs+ TACSERVS
+{% case region %}
+{% when 'APAC' %}
+server-private 10.111.160.11 key 0 {{tacacs_key}}
+server-private 10.111.164.10 key 0 {{tacacs_key}}
+{% when 'AMER' %}
+server-private 10.102.0.17 key 0 {{tacacs_key}}
+server-private 10.25.252.21 key 0 {{tacacs_key}}
+{% when 'EMEA' %}
+server-private 10.150.161.10 key 0 {{tacacs_key}}
+server-private 10.64.100.11 key 0 {{tacacs_key}}
+{% when 'CHINA'%}
+server-private 10.111.160.11 key 0 {{tacacs_key}}
+server-private 10.111.164.10 key 0 {{tacacs_key}}
+{% else %}
+server-private 10.102.0.17 key 0 {{tacacs_key}}
+server-private 10.25.252.21 key 0 {{tacacs_key}}
+{% endcase %}
+ip tacacs source-interface {{tacacs_source}}
+!   
+!   
+aaa authentication login default group TACSERVS local
+aaa authentication login no_tacacs line
+aaa authentication enable default group TACSERVS enable line
+aaa accounting commands 1 default start-stop group TACSERVS
+aaa accounting commands 15 default start-stop group TACSERVS
+!   
+line con 0
+login authentication no_tacacs
+!   
+line vty 0 4
+  transport input ssh
+!   
+! NOTE: Log into router using TACACS before entering the following commands
+!   
+!aaa authorization config-commands
+!aaa authorization exec default group TACSERVS if-authenticated
+!aaa authorization commands 1 default group TACSERVS if-authenticated
+!aaa authorization commands 15 default group TACSERVS if-authenticated

@@ -1,0 +1,19 @@
+alias exec ct config t
+alias exec sir show ip route | e - 
+alias exec sib show ip int brief
+alias exec sb show ip bgp
+alias exec sbn show ip bgp nei
+alias exec sbs show ip bgp summ
+alias exec sr show run | ex alias
+alias exec sri show run inter
+alias exec beg show run | begin
+alias exec inc show run | include
+alias exec sen show ip eigrp nei
+alias exec sei show ip eigrp int
+alias exec cdp show cdp neighbors
+alias exec sip show ip protocols
+alias exec i show ip int br | exclude unassigned
+alias exec r show run | beg router
+alias exec acl show ip access-list
+alias exec sid show interface description
+alias exec sidi show interface description | include

@@ -1,0 +1,28 @@
+{% case region %}       
+{% when 'APAC' %}
+! APAC NTP List
+ntp server 10.50.0.100
+ntp server 10.111.0.100
+ntp server 10.102.1.100
+{% when 'AMER' %}
+! AMER NTP List
+ntp server 10.50.0.100
+ntp server 10.111.0.100
+ntp server 10.102.1.100
+{% when 'EMEA' %}
+! EMEA NTP List
+ntp server 10.50.0.100
+ntp server 10.111.0.100
+ntp server 10.102.1.100
+{% when 'CHINA'%}
+! CHINA NTP List
+ntp server 10.50.0.100
+ntp server 10.111.0.100
+ntp server 10.102.1.100
+{% else %}
+! DEFAULT NTP List
+ntp server 10.50.0.100
+ntp server 10.111.0.100
+ntp server 10.102.1.100
+{% endcase %}
+ntp source-interface loopback0

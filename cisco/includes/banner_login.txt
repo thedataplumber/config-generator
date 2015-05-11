@@ -1,0 +1,9 @@
+banner login ^
+This device is private property intended for the exclusive use of
+authorized personnel for business purposes. Anyone using this
+system consents to monitoring, review and recording of such
+activity. Passwords must be kept confidential and unauthorized
+access is strictly prohibited. Unauthorized use of this system
+may subject you to criminal prosecution and penalties. 
+ 
+^
