@@ -1,5 +1,5 @@
-snmp-server community {{snmp_ro}} RO 99
-snmp-server community {{snmp_rw}} RW 99
+snmp-server community {{credentials.snmp_ro}} RO 99
+snmp-server community {{credentials.snmp_rw}} RW 99
 snmp-server ifindex persist
 snmp-server location {{site_code | downcase}} : Floor={{site_floor}} Room={{site_room}} Cabinet={{site_rack_identifier}}
 snmp-server contact {{snmp_contact}}

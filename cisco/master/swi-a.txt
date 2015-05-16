@@ -1,0 +1,435 @@
+{% assign fw_pop_subnet = site_summary | subnet:28,17 %}
+{% assign loopback_subnet = management_summary | subnet:28,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
+{% assign wired_user_subnet_1 = site_summary | subnet:25,1 %}
+{% assign trusted_wireless_subnet_1 = site_summary | subnet:25,2 %}
+{% assign inet_pop_subnet = site_summary | subnet:28,18 %}
+! =======
+! READ ME
+! =======
+!
+! Switches must be stacked as required prior to deploying configuration
+! This configuration uses a 2 switch stack, as per the Layer 2 DMVPN design
+! Port channels are preconfigured with the same number as the device id
+! Trunks are pruned by default.  Additional VLANs must be added to the trunks manually
+! SVIs remain "shutdown"
+! If multiple Wired/ Wireless User VLANs are required, these will need to be manually added
+! The network management IP is preassigned for switches - Ensure other devices that require a network management IP do not clash
+! Only infrastructure interfaces, and User Ports are defined by this generator, wireless, server ports etc. must be defined manually.
+!
+! ====
+! IPAM
+! ====
+!
+! The following IPs have been pre-assigned in this configuration.  
+! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
+!
+!
+{{net_mgmt_subnet | host_address:4}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+!
+!
+! ======
+! CONFIG
+! ======
+!
+! //START BASE SECTION
+!
+!
+hostname {{country | downcase}}-{{site_code | downcase}}-swi01
+{% template_include base %}
+!
+!       
+! //END BASE SECTION
+!
+! //START LOGGING SECTION
+! //STN-08007
+!
+{% template_include logging %}
+!
+!
+! //END LOGGING SECTION
+!
+!
+! //START QOS SECTION
+!
+!
+mls qos map cos-dscp 0 8 16 24 34 46 48 56
+mls qos srr-queue output cos-map queue 1 threshold 3 4 5
+mls qos srr-queue output cos-map queue 2 threshold 1 2
+mls qos srr-queue output cos-map queue 2 threshold 2 3
+mls qos srr-queue output cos-map queue 2 threshold 3 6 7
+mls qos srr-queue output cos-map queue 3 threshold 3 0
+mls qos srr-queue output cos-map queue 4 threshold 3 1
+mls qos srr-queue output dscp-map queue 1 threshold 3 32 34 40 46
+mls qos srr-queue output dscp-map queue 2 threshold 1 16 18 20 22 26 28 30 36
+mls qos srr-queue output dscp-map queue 2 threshold 1 38
+mls qos srr-queue output dscp-map queue 2 threshold 2 24
+mls qos srr-queue output dscp-map queue 2 threshold 3 48 56
+mls qos srr-queue output dscp-map queue 3 threshold 3 0
+mls qos srr-queue output dscp-map queue 4 threshold 1 8
+mls qos srr-queue output dscp-map queue 4 threshold 3 10 12 14
+mls qos queue-set output 1 threshold 2 80 90 100 100
+mls qos queue-set output 1 threshold 4 60 100 100 100
+mls qos
+!
+policy-map TRUST_VVLAN_ONLY
+class class-default
+trust dscp
+!
+!
+! //END QOS SECTION
+!
+!
+! //START LAYER2 SECTION
+!
+!
+{% template_include layer2 %}
+!
+!
+! //END SPANNING-TREE SECTION
+!
+!
+! //START VLAN SECTION
+!
+!
+vlan {{fw_pop_id}}
+ name {{fw_pop_subnet | cidr}}_FW_POP
+vlan {{net_mgmt_id}}
+ name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_1
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
+vlan {{guest_wireless_id}}
+ name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
+vlan {{inet_id}}
+ name {{inet_subnet | cidr}}_INET_POP
+vlan {{native_id}}
+ name NATIVE
+!
+!
+! //END VLAN SECTION
+!
+!
+! //START INTERFACE SECTION
+!
+!
+interface Port-channel1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wlc01 1
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{net_mgmt_id}},{{trusted_wireless_id_1}},{{guest_wireless_id}}
+ switchport mode trunk
+ mls qos vlan-based
+!
+interface range GigabitEthernet1/0/1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/1
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{net_mgmt_id}},{{wired_user_id_1}},{{voice_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}}
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos trust dscp
+!
+interface range GigabitEthernet1/0/2
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/2
+ switchport access vlan {{inet_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos trust dscp
+ spanning-tree portfast
+!
+interface range GigabitEthernet1/0/3
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb01 WAN1
+ switchport access vlan {{inet_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet1/0/4
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb01 INTERNAL5
+ switchport access vlan {{fw_pop_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet1/0/5
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb01 DMZ
+ switchport access vlan {{net_mgmt_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet1/0/6
+ description [F] {{country | downcase}}-{{site_code | downcase}}-trm01 0
+ switchport access vlan {{net_mgmt_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet1/0/7
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wlc01 1
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ channel-group 1 mode on
+!
+interface range GigabitEthernet1/0/8
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wlc01 2
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ channel-group 1 mode on
+!
+interface range GigabitEthernet1/0/9
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wap01 0.1
+ switchport mode trunk
+ switchport trunk native vlan {{trusted_wireless_id_1}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{trusted_wireless_id_1}},{{guest_wireless_id}}
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+!
+interface range GigabitEthernet1/0/10
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet1/0/11
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet1/0/12
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet1/0/13-48
+ description USER
+ switchport access vlan {{wired_user_id_1}}
+ switchport mode access
+ switchport voice vlan {{voice_id_1}}
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr02 0/1
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{net_mgmt_id}},{{wired_user_id_1}},{{voice_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}}
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos trust dscp
+!
+interface range GigabitEthernet2/0/2
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr02 0/2
+ switchport access vlan {{inet_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos trust dscp
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/3
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb02 WAN1
+ switchport access vlan {{inet_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/4
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb02 INTERNAL5
+ switchport access vlan {{fw_pop_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/5
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb02 DMZ
+ switchport access vlan {{net_mgmt_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/6
+ description [F] {{country | downcase}}-{{site_code | downcase}}-trm01 1
+ switchport access vlan {{net_mgmt_id}}
+ switchport mode access
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+!
+interface range GigabitEthernet2/0/7
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wlc01 1
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ channel-group 1 mode on
+!
+interface range GigabitEthernet2/0/8
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wlc01 2
+ switchport mode trunk
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ channel-group 1 mode on
+!
+interface range GigabitEthernet2/0/9
+ description [F] {{country | downcase}}-{{site_code | downcase}}-wap02 0.1
+ switchport mode trunk
+ switchport trunk native vlan {{trusted_wireless_id_1}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{trusted_wireless_id_1}},{{guest_wireless_id}}
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+!
+interface range GigabitEthernet2/0/10
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet2/0/11
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet2/0/12
+ description RESERVED FOR NETWORK
+ shut
+!
+interface range GigabitEthernet2/0/13-48
+ description USER
+ switchport access vlan {{wired_user_id_1}}
+ switchport mode access
+ switchport voice vlan {{voice_id_1}}
+ srr-queue bandwidth share 1 15 70 5
+ priority-queue out
+ queue-set 1
+ mls qos vlan-based
+ spanning-tree portfast
+{% endif %}
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface vlan {{net_mgmt_id}}
+ description NETWORK_MGMT
+ ip address {{net_mgmt_subnet | host_address:4}} {{net_mgmt_subnet | mask}}
+!
+!
+! //END INTERFACE SECTION
+!
+!
+! //START ROUTING SECTION
+!
+! 
+ip default-gateway {{net_mgmt_subnet | host_address:1}}
+!
+!
+! //END ROUTING SECTION
+!
+!
+! //START ACL SECTION
+!
+!
+access-list 98 remark LoginAccess
+access-list 98 permit 10.111.0.0 0.0.255.255
+!
+access-list 99 remark SNMPManager
+access-list 99 permit 10.111.0.0 0.0.255.255
+!
+!
+! //END ACL SECTION
+!
+! //START SNMP SECTION
+! 
+!   
+{% template_include snmp %}
+!
+!
+! //END SNMP SECTION
+!
+! //NTP SECTION
+!
+!
+{% template_include ntp %}
+!
+!
+! //END NTP SECTION
+!
+!
+! //START ALIAS SECTION
+!
+{% template_include alias %}
+!
+! //END ALIAS SECTION
+!
+!
+! //START LOGIN BANNER SECTION
+!
+{% template_include banner_login %}
+!
+! //END LOGIN BANNER SECTION
+!
+! //START LINE SECTION
+!
+!       
+{% template_include line %}
+!
+!
+! //END LINE SECTION
+!
+! //START TACACS SECTION
+!
+!    
+{% template_include tacacs %}
+!
+!
+! //END TACACS SECTION
+!
+!
+! // START METADATA
+!
+!
+{% template_include banner_incoming %}
+!
+!
+! // END METADATA

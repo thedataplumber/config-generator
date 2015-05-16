@@ -1,0 +1,83 @@
+! //Configure Switch 1
+!
+!
+redundancy
+ mode sso
+!
+switch virtual domain 10
+switch mode virtual
+switch 1
+switch 1 priority 200
+!
+interface Port-channel63
+ description [F] VSL
+ switchport
+ switchport mode trunk
+ switchport nonegotiate
+ switch virtual link 1
+ no shutdown
+!
+interface TenGigabitEthernet1/31
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/1/31
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 63 mode on
+ no shutdown
+!
+interface TenGigabitEthernet1/32
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/1/32
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 63 mode on
+ no shutdown
+!
+!
+! //Configure Switch 2
+!
+!
+redundancy
+ mode sso
+!
+switch virtual domain 10
+switch mode virtual
+switch 2
+switch 2 priority 100
+!
+interface Port-channel64
+ description [F] VSL
+ switchport
+ switchport mode trunk
+ switchport nonegotiate
+ switch virtual link 2
+ no shutdown
+!
+interface TenGigabitEthernet1/31
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/1/31
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 64 mode on
+ no shutdown
+!
+interface TenGigabitEthernet1/32
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/1/32
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 64 mode on
+ no shutdown
+!
+! // The following command converts the configuration, saves, and requires a reboot of the hardware
+! // Run command on both switches 01 first, then 02
+!
+switch convert mode virtual
+!
+! // Dual-Active Detection with Enhanced PAgP will be configured on the first access switch stack
+! // The port-channel interfaces must be placed into a shutdown state, prior to activating dual-active detection, and also when updating the trust state
+!
+switch virtual domain 10
+dual-active detection pagp
+dual-active detection pagp trust channel-group 1
+!
+! // The switch accept mode virtual command performs this action only the first time that the chassis come up as a VSS
+! // The standby chassis must be in hot standby state for the switch accept mode virtual command to execute successfully
+!
+switch accept mode virtual

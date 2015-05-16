@@ -1,0 +1,4 @@
+vtp domain {{site_code}}
+vtp mode transparent
+spanning-tree mode rapid-pvst
+spanning-tree portfast bpduguard default

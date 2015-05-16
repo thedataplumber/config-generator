@@ -72,9 +72,9 @@ no ip source-route
 no ip gratuitous-arps
 logging buffered 65536 notification
 logging trap notification
-enable secret {{enable_secret}}
+enable secret {{credentials.enable_secret}}
 hostname {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}
-username netadmin privilege 15 secret {{user_secret}}
+username netadmin privilege 15 secret {{credentials.user_secret}}
 no ip domain-lookup
 ip domain-name ptns.pearson.com
 clock timezone UTC 0
@@ -155,16 +155,16 @@ vlan {{wireless_pop_id}}
  name {{wireless_pop_subnet | cidr}}_WIRELESS_POP
 vlan {{net_mgmt_id}}
  name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
-vlan {{server_id}}
- name {{server_subnet | cidr}}_SERVERS
-vlan {{wired_user_1_id}}
- name {{wired_user_1_subnet | cidr}}_WIRED_USERS
-vlan {{voice_1_id}}
- name {{voice_1_subnet | cidr}}_VOICE
-vlan {{video_id}}
- name {{video_subnet | cidr}}_VIDEO
-vlan {{trusted_wireless_1_id}}
- name {{trusted_wireless_subnet | cidr}}_WIRELESS_USERS
+vlan {{server_id_1}}
+ name {{server_subnet_1 | cidr}}_SERVERS
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_1
+vlan {{video_id_1}}
+ name {{video_subnet_1 | cidr}}_VIDEO
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
 vlan {{guest_wireless_id}}
  name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
 vlan {{inet_id}}
@@ -182,14 +182,15 @@ vlan {{native_id}}
 interface Port-channel{{device_id | plus:'0'}}
  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 {{device_id | plus:'0'}}
  switchport trunk native vlan {{native_id}}
- switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id}},{{wired_user_1_id}},{{voice_1_id}},{{video_id}},{{trusted_wireless_1_id}},{{guest_wireless_id}},{{inet_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_1}},{{voice_id_1}},{{video_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}},{{inet_id}}
  switchport mode trunk
+ mls qos trust dscp
 !
 interface range GigabitEthernet1/0/4-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -199,9 +200,9 @@ interface range GigabitEthernet1/0/4-48
 {% if stack == "2" or if stack == "3" or if stack == "4"  %}
 interface range GigabitEthernet2/0/4-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -212,9 +213,9 @@ interface range GigabitEthernet2/0/4-48
 {% if stack == "3" or if stack == "4"  %}
 interface range GigabitEthernet3/0/1-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -225,9 +226,9 @@ interface range GigabitEthernet3/0/1-48
 {% if stack == "4"  %}
 interface range GigabitEthernet4/0/1-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -238,12 +239,14 @@ interface range GigabitEthernet4/0/1-48
 interface TenGigabitEthernet1/0/1
  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/1/1
  switchport mode trunk
- channel-group 1 mode on
+ mls qos trust dscp
+ channel-group {{device_id | plus:'0'}} mode on
 !
 interface TenGigabitEthernet2/0/1
  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/1/1
  switchport mode trunk
- channel-group 1 mode on
+ mls qos trust dscp
+ channel-group {{device_id | plus:'0'}} mode on
 !
 interface Vlan1
  no ip address
@@ -358,24 +361,7 @@ access-list 99 permit 10.111.0.0 0.0.255.255
 ! //START LINE SECTION
 !
 !       
-line con 0       
-  password {{line_pass}}
-  login local
-  logging synchronous
-  exec-timeout 30 0
-!       
-line aux 0
-  password {{line_pass}}
-  login
-  logging synchronous
-  exec-timeout 30 0
-!       
-line vty 0 15
-  password {{line_pass}}
-  login local
-  logging synchronous
-  access-class 98 in
-  exec-timeout 30 0
+{% template_include line %}
 !
 !
 ! //END LINE SECTION

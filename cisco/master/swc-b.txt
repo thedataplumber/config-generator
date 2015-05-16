@@ -25,11 +25,11 @@
 {{fw_pop_subnet | host_address:1}} | vl{{fw_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{wireless_pop_subnet | host_address:1}} | vl{{wireless_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{net_mgmt_subnet | host_address:1}} | vl{{net_mgmt_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
-{{server_subnet | host_address:1}} | vl{{server_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
-{{wired_user_1_subnet | host_address:1}} | vl{{wired_user_1_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
-{{voice_1_subnet | host_address:1}} | vl{{voice_1_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
-{{video_subnet | host_address:1}} | vl{{video_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
-{{trusted_wireless_1_subnet | host_address:1}} | vl{{trusted_wireless_1_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{server_subnet_1 | host_address:1}} | vl{{server_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{wired_user_subnet_1 | host_address:1}} | vl{{wired_user_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{voice_subnet_1 | host_address:1}} | vl{{voice_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{video_subnet_1 | host_address:1}} | vl{{video_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{trusted_wireless_subnet_1 | host_address:1}} | vl{{trusted_wireless_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{fw_pop_subnet | host_address:2}} | vl{{fw_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-fwb01.ptns.pearson.com | NOTE: THIS IS THE FIREWALL IP
 !
 !
@@ -53,9 +53,9 @@ no ip source-route
 no ip gratuitous-arps
 logging buffered 65536 notification
 logging trap notification
-enable secret {{enable_secret}}
+enable secret {{credentials.enable_secret}}
 hostname {{country | downcase}}-{{site_code | downcase}}-swc01
-username netadmin privilege 15 secret {{user_secret}}
+username netadmin privilege 15 secret {{credentials.user_secret}}
 no ip domain-lookup
 ip domain-name ptns.pearson.com
 clock timezone UTC 0
@@ -137,16 +137,16 @@ vlan {{wireless_pop_id}}
  name {{wireless_pop_subnet | cidr}}_WIRELESS_POP
 vlan {{net_mgmt_id}}
  name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
-vlan {{server_id}}
- name {{server_subnet | cidr}}_SERVERS
-vlan {{wired_user_1_id}}
- name {{wired_user_1_subnet | cidr}}_WIRED_USERS
-vlan {{voice_1_id}}
- name {{voice_1_subnet | cidr}}_VOICE
-vlan {{video_id}}
- name {{video_subnet | cidr}}_VIDEO
-vlan {{trusted_wireless_1_id}}
- name {{trusted_wireless_1_subnet | cidr}}_WIRELESS_USERS
+vlan {{server_id_1}}
+ name {{server_subnet_1 | cidr}}_SERVERS
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_1 | cidr}}_WIRED_USERS
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE
+vlan {{video_id_1}}
+ name {{video_subnet_1 | cidr}}_VIDEO
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS
 vlan {{guest_wireless_id}}
  name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
 vlan {{inet_id}}
@@ -215,9 +215,9 @@ interface GigabitEthernet2/0/3
 !
 interface range GigabitEthernet1/0/4-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -226,9 +226,9 @@ interface range GigabitEthernet1/0/4-48
 !
 interface range GigabitEthernet2/0/4-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -238,9 +238,9 @@ interface range GigabitEthernet2/0/4-48
 {% if stack == "3" or if stack == "4"  %}
 interface range GigabitEthernet3/0/1-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -251,9 +251,9 @@ interface range GigabitEthernet3/0/1-48
 {% if stack == "4"  %}
 interface range GigabitEthernet4/0/1-48
  description USER
- switchport access vlan {{wired_user_1_id}}
+ switchport access vlan {{wired_user_id_1}}
  switchport mode access
- switchport voice vlan {{voice_1_id}}
+ switchport voice vlan {{voice_id_1}}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -279,31 +279,31 @@ interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
  ip address {{net_mgmt_subnet | host_address:1}} {{net_mgmt_subnet | mask}}
 !
-interface vlan {{server_id}}
+interface vlan {{server_id_1}}
  description SERVERS
- ip address {{server_subnet | host_address:1}} {{server_subnet | mask}}
+ ip address {{server_subnet_1 | host_address:1}} {{server_subnet_1 | mask}}
 !
-interface vlan {{wired_user_1_id}}
+interface vlan {{wired_user_id_1}}
  description WIRED_USERS
- ip address {{wired_user_1_subnet | host_address:1}} {{wired_user_1_subnet | mask}}
+ ip address {{wired_user_subnet_1 | host_address:1}} {{wired_user_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 !
-interface vlan {{voice_1_id}}
+interface vlan {{voice_id_1}}
  description VOICE
- ip address {{voice_1_subnet | host_address:1}} {{voice_1_subnet | mask}}
+ ip address {{voice_subnet_1 | host_address:1}} {{voice_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 !
-interface vlan {{video_id}}
+interface vlan {{video_id_1}}
  description VIDEO
- ip address {{video_subnet | host_address:1}} {{video_subnet | mask}}
+ ip address {{video_subnet_1 | host_address:1}} {{video_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 !
-interface vlan {{trusted_wireless_1_id}}
+interface vlan {{trusted_wireless_id_1}}
  description WIRELESS_USERS
- ip address {{trusted_wireless_1_subnet | host_address:1}} {{trusted_wireless_1_subnet | mask}}
+ ip address {{trusted_wireless_subnet_1 | host_address:1}} {{trusted_wireless_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 !
@@ -325,11 +325,11 @@ router eigrp 1
  network {{fw_pop_subnet | host_address:1}} 0.0.0.0
  network {{wireless_pop_subnet | host_address:1}} 0.0.0.0
  network {{net_mgmt_subnet | host_address:1}} 0.0.0.0
- network {{server_subnet | host_address:1}} 0.0.0.0
- network {{wired_user_1_subnet | host_address:1}} 0.0.0.0
- network {{voice_1_subnet | host_address:1}} 0.0.0.0
- network {{video_subnet | host_address:1}} 0.0.0.0
- network {{trusted_wireless_1_subnet | host_address:1}} 0.0.0.0
+ network {{server_subnet_1 | host_address:1}} 0.0.0.0
+ network {{wired_user_subnet_1 | host_address:1}} 0.0.0.0
+ network {{voice_subnet_1 | host_address:1}} 0.0.0.0
+ network {{video_subnet_1 | host_address:1}} 0.0.0.0
+ network {{trusted_wireless_subnet_1 | host_address:1}} 0.0.0.0
  passive-interface default
  no passive-interface GigabitEthernet1/0/1
  no passive-interface GigabitEthernet2/0/1
@@ -389,24 +389,7 @@ access-list 99 permit 10.111.0.0 0.0.255.255
 ! //START LINE SECTION
 !
 !       
-line con 0       
-  password {{line_pass}}
-  login local
-  logging synchronous
-  exec-timeout 30 0
-!       
-line aux 0
-  password {{line_pass}}
-  login
-  logging synchronous
-  exec-timeout 30 0
-!       
-line vty 0 15
-  password {{line_pass}}
-  login local
-  logging synchronous
-  access-class 98 in
-  exec-timeout 30 0
+{% template_include line %}
 !
 !
 ! //END LINE SECTION

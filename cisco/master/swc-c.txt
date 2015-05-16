@@ -1,0 +1,890 @@
+! =======
+! READ ME
+! =======
+!
+! SVIs remain "shutdown"
+! If multiple Wired/ Wireless User VLANs are required, these will need to be manually added
+! The Firewall POP (VLAN100) auto assigns the following:
+!  - 1st IP address - SVI on the core switch
+!  - 2nd IP address - FW Interface (The default route points to this address)
+! Only infrastructure interfaces, and User Ports are defined by this generator, wireless, server ports etc. must be defined manually.
+! Each Layer 2 access switch stack has a Port-Channel with the following dedicated VLANs on the trunk:
+!  - Wired User
+!  - Voice
+!  - Trusted Wireless User
+! VSS configuration is included, to be added to each switch individually
+!  - Dual-Active Detection with Enhanced PAgP will be configured on the first access switch stack
+!  - Whilst priority is set, it is recommended to reload the core switches in order of preference (e.g "1" first)
+!  - Ensure that Dual Active Detection is operating correctly
+!  - Perform a test failover to the redundant switch, by issuing the "redundancy force-switchover" command
+!
+! ====
+! IPAM
+! ====
+!
+! The following IPs have been pre-assigned in this configuration.  
+! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
+!
+!
+{{loop0_ip}} | {{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{infrastructure_summary | host_address:1}} | ge1-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{infrastructure_summary | host_address:3}} | ge2-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{infrastructure_summary | host_address:5}} | ge1-0-2.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{infrastructure_summary | host_address:7}} | ge2-0-2.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{fw_pop_subnet | host_address:1}} | vl{{fw_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{wireless_pop_subnet | host_address:1}} | vl{{wireless_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{net_mgmt_subnet | host_address:1}} | vl{{net_mgmt_id}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{server_subnet_1 | host_address:1}} | vl{{server_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_1 | host_address:1}} | vl{{wired_user_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_2 | host_address:1}} | vl{{wired_user_id_2}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_3 | host_address:1}} | vl{{wired_user_id_3}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_4 | host_address:1}} | vl{{wired_user_id_4}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "5" or "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_5 | host_address:1}} | vl{{wired_user_id_5}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "6" or "7" or "8" or "9" %}
+{{wired_user_subnet_6 | host_address:1}} | vl{{wired_user_id_6}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "7" or "8" or "9" %}
+{{wired_user_subnet_7 | host_address:1}} | vl{{wired_user_id_7}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "8" or "9" %}
+{{wired_user_subnet_8 | host_address:1}} | vl{{wired_user_id_8}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "9" %}
+{{wired_user_subnet_9 | host_address:1}} | vl{{wired_user_id_9}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% endcase %}
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{voice_subnet_1 | host_address:1}} | vl{{voice_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{voice_subnet_2 | host_address:1}} | vl{{voice_id_2}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{voice_subnet_3 | host_address:1}} | vl{{voice_id_3}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+{{voice_subnet_4 | host_address:1}} | vl{{voice_id_4}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "5" or "6" or "7" or "8" or "9" %}
+{{voice_subnet_5 | host_address:1}} | vl{{voice_id_5}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "6" or "7" or "8" or "9" %}
+{{voice_subnet_6 | host_address:1}} | vl{{voice_id_6}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "7" or "8" or "9" %}
+{{voice_subnet_7 | host_address:1}} | vl{{voice_id_7}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "8" or "9" %}
+{{voice_subnet_8 | host_address:1}} | vl{{voice_id_8}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "9" %}
+{{voice_subnet_9 | host_address:1}} | vl{{voice_id_9}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% endcase %}
+{{video_subnet_1 | host_address:1}} | vl{{video_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{trusted_wireless_subnet_1 | host_address:1}} | vl{{trusted_wireless_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{trusted_wireless_subnet_2 | host_address:1}} | vl{{trusted_wireless_id_2}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+{{trusted_wireless_subnet_3 | host_address:1}} | vl{{trusted_wireless_id_3}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+{{trusted_wireless_subnet_4 | host_address:1}} | vl{{trusted_wireless_id_4}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "5" or "6" or "7" or "8" or "9" %}{{trusted_wireless_subnet_5 | host_address:1}} | vl{{trusted_wireless_id_5}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "6" or "7" or "8" or "9" %}
+{{trusted_wireless_subnet_6 | host_address:1}} | vl{{trusted_wireless_id_6}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "7" or "8" or "9" %}
+{{trusted_wireless_subnet_7 | host_address:1}} | vl{{trusted_wireless_id_7}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "8" or "9" %}
+{{trusted_wireless_subnet_8 | host_address:1}} | vl{{trusted_wireless_id_8}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% when "9" %}
+{{trusted_wireless_subnet_9 | host_address:1}} | vl{{trusted_wireless_id_9}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% endcase %}
+{{fw_pop_subnet | host_address:2}} | vl{{fw_pop_id}}.{{country | downcase}}-{{site_code | downcase}}-fwb01.ptns.pearson.com | NOTE: THIS IS THE FIREWALL IP
+!
+!
+! ======
+! CONFIG
+! ======
+!
+!
+! //START VSS SECTION
+!
+{% template_include vss %}
+!
+! //END VSS SECTION
+!
+!
+! //START BASE SECTION
+!
+!
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+service password-encryption
+no service pad
+service tcp-keepalives-in
+service tcp-keepalives-out
+no ip bootp server
+no ip http server
+no ip http secure-server
+no ip source-route
+no ip gratuitous-arps
+logging buffered 65536 notification
+logging trap notification
+enable secret {{credentials.enable_secret}}
+hostname {{country | downcase}}-{{site_code | downcase}}-swc01
+username netadmin privilege 15 secret {{credentials.user_secret}}
+no ip domain-lookup
+ip domain-name ptns.pearson.com
+clock timezone UTC 0
+!
+crypto key generate rsa general-keys modulus 2048
+!
+!
+ip ssh version 2
+!
+!
+! //END BASE SECTION
+!
+! //START LOGGING SECTION
+! //STN-08007
+!
+{% template_include logging %}
+!
+!
+! //END LOGGING SECTION
+!
+!
+! //START QOS SECTION
+!
+!
+! QOS NOT REQUIRED ON 4500-X
+!
+!
+! //END QOS SECTION
+!
+!
+! //START VTP SECTION
+!
+!
+vtp domain {{site_code}}
+vtp mode transparent
+!
+!
+! //END VTP SECTION
+!
+!
+! //START SPANNING-TREE SECTION
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree portfast bpduguard default
+spanning-tree vlan 1-4094 priority 0
+!
+!
+! //END SPANNING-TREE SECTION
+!
+!
+! //START VLAN SECTION
+!
+!
+vlan {{fw_pop_id}}
+ name {{fw_pop_subnet | cidr}}_FW_POP
+vlan {{wireless_pop_id}}
+ name {{wireless_pop_subnet | cidr}}_WIRELESS_POP
+vlan {{net_mgmt_id}}
+ name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
+vlan {{server_id_1}}
+ name {{server_subnet_1 | cidr}}_SERVERS
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{wired_user_id_2}}
+ name {{wired_user_subnet_2 | cidr}}_WIRED_USERS_2
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{wired_user_id_3}}
+ name {{wired_user_subnet_3 | cidr}}_WIRED_USERS_3
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{wired_user_id_4}}
+ name {{wired_user_subnet_4 | cidr}}_WIRED_USERS_4
+{% when "5" or "6" or "7" or "8" or "9" %}vlan {{wired_user_id_5}}
+ name {{wired_user_subnet_5 | cidr}}_WIRED_USERS_5
+{% when "6" or "7" or "8" or "9" %}
+vlan {{wired_user_id_6}}
+ name {{wired_user_subnet_6 | cidr}}_WIRED_USERS_6
+{% when "7" or "8" or "9" %}
+vlan {{wired_user_id_7}}
+ name {{wired_user_subnet_7 | cidr}}_WIRED_USERS_7
+{% when "8" or "9" %}
+vlan {{wired_user_id_8}}
+ name {{wired_user_subnet_8 | cidr}}_WIRED_USERS_8
+{% when "9" %}
+vlan {{wired_user_id_9}}
+ name {{wired_user_subnet_9 | cidr}}_WIRED_USERS_9
+{% endcase %}
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_1
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{voice_id_2}}
+ name {{voice_subnet_2 | cidr}}_VOICE_2
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{voice_id_3}}
+ name {{voice_subnet_3 | cidr}}_VOICE_3
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{voice_id_4}}
+ name {{voice_subnet_4 | cidr}}_VOICE_4
+{% when "5" or "6" or "7" or "8" or "9" %}vlan {{voice_id_5}}
+ name {{voice_subnet_5 | cidr}}_VOICE_5
+{% when "6" or "7" or "8" or "9" %}
+vlan {{voice_id_6}}
+ name {{voice_subnet_6 | cidr}}_VOICE_6
+{% when "7" or "8" or "9" %}
+vlan {{voice_id_7}}
+ name {{voice_subnet_7 | cidr}}_VOICE_7
+{% when "8" or "9" %}
+vlan {{voice_id_8}}
+ name {{voice_subnet_8 | cidr}}_VOICE_8
+{% when "9" %}
+vlan {{voice_id_9}}
+ name {{voice_subnet_9 | cidr}}_VOICE_9
+{% endcase %}
+vlan {{video_id_1}}
+ name {{video_subnet_1 | cidr}}_VIDEO
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_2}}
+ name {{trusted_wireless_subnet_2 | cidr}}_WIRELESS_USERS_2
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_3}}
+ name {{trusted_wireless_subnet_3 | cidr}}_WIRELESS_USERS_3
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_4}}
+ name {{trusted_wireless_subnet_4 | cidr}}_WIRELESS_USERS_4
+{% when "5" or "6" or "7" or "8" or "9" %}vlan {{trusted_wireless_id_5}}
+ name {{trusted_wireless_subnet_5 | cidr}}_WIRELESS_USERS_5
+{% when "6" or "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_6}}
+ name {{trusted_wireless_subnet_6 | cidr}}_WIRELESS_USERS_6
+{% when "7" or "8" or "9" %}
+vlan {{trusted_wireless_id_7}}
+ name {{trusted_wireless_subnet_7 | cidr}}_WIRELESS_USERS_7
+{% when "8" or "9" %}
+vlan {{trusted_wireless_id_8}}
+ name {{trusted_wireless_subnet_8 | cidr}}_WIRELESS_USERS_8
+{% when "9" %}
+vlan {{trusted_wireless_id_9}}
+ name {{trusted_wireless_subnet_9 | cidr}}_WIRELESS_USERS_9
+{% endcase %}
+vlan {{guest_wireless_id}}
+ name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
+vlan {{inet_id}}
+ name {{inet_subnet | cidr}}_INET_POP
+vlan {{native_id}}
+ name NATIVE
+!
+!
+! //END VLAN SECTION
+!
+!
+! //START INTERFACE SECTION
+!
+!
+interface Loopback0
+ description MGMT
+ ip address {{loop0_ip}} 255.255.255.255 
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface Port-channel1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_1}},{{voice_id_1}},{{video_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface Port-channel2
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc02 2
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_2}},{{voice_id_2}},{{video_id_1}},{{trusted_wireless_id_2}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface Port-channel3
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc03 3
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_3}},{{voice_id_3}},{{video_id_1}},{{trusted_wireless_id_3}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface Port-channel4
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc04 4
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_4}},{{voice_id_4}},{{video_id_1}},{{trusted_wireless_id_4}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "5" or "6" or "7" or "8" or "9" %}interface Port-channel5
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc05 5
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_5}},{{voice_id_5}},{{video_id_1}},{{trusted_wireless_id_5}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "6" or "7" or "8" or "9" %}
+interface Port-channel6
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc06 6
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_6}},{{voice_id_6}},{{video_id_1}},{{trusted_wireless_id_6}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "7" or "8" or "9" %}
+interface Port-channel7
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc07 7
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_7}},{{voice_id_7}},{{video_id_1}},{{trusted_wireless_id_7}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "8" or "9" %}
+interface Port-channel8
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc08 8
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_8}},{{voice_id_8}},{{video_id_1}},{{trusted_wireless_id_8}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+! 
+{% when "9" %}
+interface Port-channel9
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc09 9
+ switchport
+ switchport trunk native vlan {{native_id}}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_9}},{{voice_id_9}},{{video_id_1}},{{trusted_wireless_id_9}},{{guest_wireless_id}},{{inet_id}}
+ switchport mode trunk
+{% endcase %}
+! 
+interface TenGigabitEthernet1/1/1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/1
+ no switchport
+ ip address {{infrastructure_summary | host_address:1}} 255.255.255.254
+!
+interface TenGigabitEthernet1/1/2
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr02 0/1
+ no switchport
+ ip address {{infrastructure_summary | host_address:5}} 255.255.255.254
+!
+interface TenGigabitEthernet1/1/3
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/3
+ switchport access vlan 900
+ switchport mode access
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/4
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/0/1
+ switchport mode trunk
+ channel-group 1 mode on
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/5
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc02 1/0/1
+ switchport mode trunk
+ channel-group 2 mode on
+!
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/6
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc03 1/0/1
+ switchport mode trunk
+ channel-group 3 mode on
+!
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/7
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc04 1/0/1
+ switchport mode trunk
+ channel-group 4 mode on
+!
+{% when "5" or "6" or "7" or "8" or "9" %}interface TenGigabitEthernet1/1/8
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc05 1/0/1
+ switchport mode trunk
+ channel-group 5 mode on
+!
+{% when "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/9
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc06 1/0/1
+ switchport mode trunk
+ channel-group 6 mode on
+!
+{% when "7" or "8" or "9" %}
+interface TenGigabitEthernet1/1/10
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc07 1/0/1
+ switchport mode trunk
+ channel-group 7 mode on
+!
+{% when "8" or "9" %}
+interface TenGigabitEthernet1/1/11
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc08 1/0/1
+ switchport mode trunk
+ channel-group 8 mode on
+!
+{% when "9" %}
+interface TenGigabitEthernet1/1/12
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc09 1/0/1
+ switchport mode trunk
+ channel-group 9 mode on
+{% endcase %}
+!
+interface TenGigabitEthernet2/1/1
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/2
+ no switchport
+ ip address {{infrastructure_summary | host_address:3}} 255.255.255.254
+!
+interface TenGigabitEthernet2/1/2
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr02 0/2
+ no switchport
+ ip address {{infrastructure_summary | host_address:7}} 255.255.255.254
+!
+interface TenGigabitEthernet2/1/3
+ description [F] {{country | downcase}}-{{site_code | downcase}}-idr02 0/3
+ switchport access vlan 900
+ switchport mode access
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/4
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/0/1
+ switchport mode trunk
+ channel-group 1 mode on
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/5
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc02 2/0/1
+ switchport mode trunk
+ channel-group 2 mode on
+!
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/6
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc03 2/0/1
+ switchport mode trunk
+ channel-group 3 mode on
+!
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/7
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc04 2/0/1
+ switchport mode trunk
+ channel-group 4 mode on
+!
+{% when "5" or "6" or "7" or "8" or "9" %}interface TenGigabitEthernet2/1/8
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc05 2/0/1
+ switchport mode trunk
+ channel-group 5 mode on
+!
+{% when "6" or "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/9
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc06 2/0/1
+ switchport mode trunk
+ channel-group 6 mode on
+!
+{% when "7" or "8" or "9" %}
+interface TenGigabitEthernet2/1/10
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc07 2/0/1
+ switchport mode trunk
+ channel-group 7 mode on
+!
+{% when "8" or "9" %}
+interface TenGigabitEthernet2/1/11
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc08 2/0/1
+ switchport mode trunk
+ channel-group 8 mode on
+!
+{% when "9" %}
+interface TenGigabitEthernet2/1/12
+ description [F] {{country | downcase}}-{{site_code | downcase}}-swc09 2/0/1
+ switchport mode trunk
+ channel-group 9 mode on
+{% endcase %}
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface vlan {{fw_pop_id}}
+ description FW_POP
+ ip address {{fw_pop_subnet | host_address:1}} {{fw_pop_subnet | mask}}
+!
+interface vlan {{wireless_pop_id}}
+ description WIRELESS_POP
+ ip address {{wireless_pop_subnet | host_address:1}} {{wireless_pop_subnet | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+interface vlan {{net_mgmt_id}}
+ description NETWORK_MGMT
+ ip address {{net_mgmt_subnet | host_address:1}} {{net_mgmt_subnet | mask}}
+!
+interface vlan {{server_id_1}}
+ description SERVERS
+ ip address {{server_subnet_1 | host_address:1}} {{server_subnet_1 | mask}}
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{wired_user_id_1}}
+ description WIRED_USERS_1
+ ip address {{wired_user_subnet_1 | host_address:1}} {{wired_user_subnet_1 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{wired_user_id_2}}
+ description WIRED_USERS_2
+ ip address {{wired_user_subnet_2 | host_address:1}} {{wired_user_subnet_2 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{wired_user_id_3}}
+ description WIRED_USERS_3
+ ip address {{wired_user_subnet_3 | host_address:1}} {{wired_user_subnet_3 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{wired_user_id_4}}
+ description WIRED_USERS_4
+ ip address {{wired_user_subnet_4 | host_address:1}} {{wired_user_subnet_4 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "5" or "6" or "7" or "8" or "9" %}interface vlan {{wired_user_id_5}}
+ description WIRED_USERS_5
+ ip address {{wired_user_subnet_5 | host_address:1}} {{wired_user_subnet_5 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "6" or "7" or "8" or "9" %}
+interface vlan {{wired_user_id_6}}
+ description WIRED_USERS_6
+ ip address {{wired_user_subnet_6 | host_address:1}} {{wired_user_subnet_6 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "7" or "8" or "9" %}
+interface vlan {{wired_user_id_7}}
+ description WIRED_USERS_7
+ ip address {{wired_user_subnet_7 | host_address:1}} {{wired_user_subnet_7 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "8" or "9" %}
+interface vlan {{wired_user_id_8}}
+ description WIRED_USERS_8
+ ip address {{wired_user_subnet_8 | host_address:1}} {{wired_user_subnet_8 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "9" %}
+interface vlan {{wired_user_id_9}}
+ description WIRED_USERS_9
+ ip address {{wired_user_subnet_9 | host_address:1}} {{wired_user_subnet_9 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+{% endcase %}
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{voice_id_1}}
+ description VOICE_1
+ ip address {{voice_subnet_1 | host_address:1}} {{voice_subnet_1 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{voice_id_2}}
+ description VOICE_2
+ ip address {{voice_subnet_2 | host_address:1}} {{voice_subnet_2 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{voice_id_3}}
+ description VOICE_3
+ ip address {{voice_subnet_3 | host_address:1}} {{voice_subnet_3 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{voice_id_4}}
+ description VOICE_4
+ ip address {{voice_subnet_4 | host_address:1}} {{voice_subnet_4 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "5" or "6" or "7" or "8" or "9" %}interface vlan {{voice_id_5}}
+ description VOICE_5
+ ip address {{voice_subnet_5 | host_address:1}} {{voice_subnet_5 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "6" or "7" or "8" or "9" %}
+interface vlan {{voice_id_6}}
+ description VOICE_6
+ ip address {{voice_subnet_6 | host_address:1}} {{voice_subnet_6 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "7" or "8" or "9" %}
+interface vlan {{voice_id_7}}
+ description VOICE_7
+ ip address {{voice_subnet_7 | host_address:1}} {{voice_subnet_7 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "8" or "9" %}
+interface vlan {{voice_id_8}}
+ description VOICE_8
+ ip address {{voice_subnet_8 | host_address:1}} {{voice_subnet_8 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "9" %}
+interface vlan {{voice_id_9}}
+ description VOICE_9
+ ip address {{voice_subnet_9 | host_address:1}} {{voice_subnet_9 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+{% endcase %}
+!
+interface vlan {{video_id_1}}
+ description VIDEO
+ ip address {{video_subnet_1 | host_address:1}} {{video_subnet_1 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_1}}
+ description WIRELESS_USERS_1
+ ip address {{trusted_wireless_subnet_1 | host_address:1}} {{trusted_wireless_subnet_1 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_2}}
+ description WIRELESS_USERS_2
+ ip address {{trusted_wireless_subnet_2 | host_address:1}} {{trusted_wireless_subnet_2 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_3}}
+ description WIRELESS_USERS_3
+ ip address {{trusted_wireless_subnet_3 | host_address:1}} {{trusted_wireless_subnet_3 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_4}}
+ description WIRELESS_USERS_4
+ ip address {{trusted_wireless_subnet_4 | host_address:1}} {{trusted_wireless_subnet_4 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "5" or "6" or "7" or "8" or "9" %}interface vlan {{trusted_wireless_id_5}}
+ description WIRELESS_USER_5
+ ip address {{trusted_wireless_subnet_5 | host_address:1}} {{trusted_wireless_subnet_5 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "6" or "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_6}}
+ description WIRELESS_USERS_6
+ ip address {{trusted_wireless_subnet_6 | host_address:1}} {{trusted_wireless_subnet_6| mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "7" or "8" or "9" %}
+interface vlan {{trusted_wireless_id_7}}
+ description WIRELESS_USERS_7
+ ip address {{trusted_wireless_subnet_7 | host_address:1}} {{trusted_wireless_subnet_7 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "8" or "9" %}
+interface vlan {{trusted_wireless_id_8}}
+ description WIRELESS_USERS_8
+ ip address {{trusted_wireless_subnet_8 | host_address:1}} {{trusted_wireless_subnet_8 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+!
+{% when "9" %}
+interface vlan {{trusted_wireless_id_9}}
+ description WIRELESS_USERS_9
+ ip address {{trusted_wireless_subnet_9 | host_address:1}} {{trusted_wireless_subnet_9 | mask}}
+ ip helper-address {{ip_helper_1}}
+ ip helper-address {{ip_helper_2}}
+{% endcase %}
+!
+!
+! //END INTERFACE SECTION
+!
+!
+! //START ROUTING SECTION
+!
+!
+router eigrp 1
+ no auto-summary
+ no eigrp log-neighbor-changes
+ nsf 
+ network {{loop0_ip}} 0.0.0.0
+ network {{infrastructure_summary | host_address:1}} 0.0.0.0
+ network {{infrastructure_summary | host_address:3}} 0.0.0.0
+ network {{infrastructure_summary | host_address:5}} 0.0.0.0
+ network {{infrastructure_summary | host_address:7}} 0.0.0.0
+ network {{fw_pop_subnet | host_address:1}} 0.0.0.0
+ network {{wireless_pop_subnet | host_address:1}} 0.0.0.0
+ network {{net_mgmt_subnet | host_address:1}} 0.0.0.0
+ network {{server_subnet_1 | host_address:1}} 0.0.0.0
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{wired_user_subnet_1 | host_address:1}} 0.0.0.0
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{wired_user_subnet_2 | host_address:1}} 0.0.0.0
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{wired_user_subnet_3 | host_address:1}} 0.0.0.0
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{wired_user_subnet_4 | host_address:1}} 0.0.0.0
+{% when "5" or "6" or "7" or "8" or "9" %} network {{wired_user_subnet_5 | host_address:1}} 0.0.0.0
+{% when "6" or "7" or "8" or "9" %}
+ network {{wired_user_subnet_6 | host_address:1}} 0.0.0.0
+{% when "7" or "8" or "9" %}
+ network {{wired_user_subnet_7 | host_address:1}} 0.0.0.0
+{% when "8" or "9" %}
+ network {{wired_user_subnet_8 | host_address:1}} 0.0.0.0
+{% when "9" %}
+ network {{wired_user_subnet_9 | host_address:1}} 0.0.0.0
+{% endcase %}
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_1 | host_address:1}} 0.0.0.0
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_2 | host_address:1}} 0.0.0.0
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_3 | host_address:1}} 0.0.0.0
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_4 | host_address:1}} 0.0.0.0
+{% when "5" or "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_5 | host_address:1}} 0.0.0.0
+{% when "6" or "7" or "8" or "9" %}
+ network {{voice_subnet_6 | host_address:1}} 0.0.0.0
+{% when "7" or "8" or "9" %}
+ network {{voice_subnet_7 | host_address:1}} 0.0.0.0
+{% when "8" or "9" %}
+ network {{voice_subnet_8 | host_address:1}} 0.0.0.0
+{% when "9" %}
+ network {{voice_subnet_9 | host_address:1}} 0.0.0.0
+{% endcase %}
+ network {{video_subnet_1 | host_address:1}} 0.0.0.0
+{% case access_switch_stacks %}
+{% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_1 | host_address:1}} 0.0.0.0
+{% when "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_2 | host_address:1}} 0.0.0.0
+{% when "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_3 | host_address:1}} 0.0.0.0
+{% when "4" or "5" or "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_4 | host_address:1}} 0.0.0.0
+{% when "5" or "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_5 | host_address:1}} 0.0.0.0
+{% when "6" or "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_6 | host_address:1}} 0.0.0.0
+{% when "7" or "8" or "9" %}
+ network {{trusted_wireless_subnet_7 | host_address:1}} 0.0.0.0
+{% when "8" or "9" %}
+ network {{trusted_wireless_subnet_8 | host_address:1}} 0.0.0.0
+{% when "9" %}
+ network {{trusted_wireless_subnet_9 | host_address:1}} 0.0.0.0
+{% endcase %}
+ passive-interface default
+ no passive-interface TenGigabitEthernet1/1/1
+ no passive-interface TenGigabitEthernet1/1/2
+ no passive-interface TenGigabitEthernet2/1/1
+ no passive-interface TenGigabitEthernet2/1/2
+ eigrp stub connected summary
+!
+ip route 0.0.0.0 0.0.0.0 {{fw_pop_subnet | host_address:2}}
+!
+!
+! //END ROUTING SECTION
+!
+!
+! //START ACL SECTION
+!
+!
+access-list 98 remark LoginAccess
+access-list 98 permit 10.111.0.0 0.0.255.255
+!
+access-list 99 remark SNMPManager
+access-list 99 permit 10.111.0.0 0.0.255.255
+!
+!
+! //END ACL SECTION
+!
+! //START SNMP SECTION
+!
+!
+{% template_include snmp %}
+!
+!
+! //END SNMP SECTION
+!
+! //NTP SECTION
+!
+!
+{% template_include ntp %}
+!
+!
+! //END NTP SECTION
+!
+!
+! //START ALIAS SECTION
+!
+{% template_include alias %}
+!
+! //END ALIAS SECTION
+!
+!
+! //START LOGIN BANNER SECTION
+!
+{% template_include banner_login %}
+!
+! //END LOGIN BANNER SECTION
+!
+!
+! //START LINE SECTION
+!
+!
+{% template_include line %}
+!
+!
+! //END LINE SECTION
+!
+! //START TACACS SECTION
+!
+!
+{% template_include tacacs %}
+!
+!
+! //END TACACS SECTION
+!
+!
+! // START METADATA
+!
+!
+{% template_include banner_incoming %}
+!
+!
+! // END METADATA
