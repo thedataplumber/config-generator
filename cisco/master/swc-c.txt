@@ -113,30 +113,8 @@
 ! //START BASE SECTION
 !
 !
-service timestamps debug datetime msec localtime show-timezone
-service timestamps log datetime msec localtime show-timezone
-service password-encryption
-no service pad
-service tcp-keepalives-in
-service tcp-keepalives-out
-no ip bootp server
-no ip http server
-no ip http secure-server
-no ip source-route
-no ip gratuitous-arps
-logging buffered 65536 notification
-logging trap notification
-enable secret {{credentials.enable_secret}}
 hostname {{country | downcase}}-{{site_code | downcase}}-swc01
-username netadmin privilege 15 secret {{credentials.user_secret}}
-no ip domain-lookup
-ip domain-name ptns.pearson.com
-clock timezone UTC 0
-!
-crypto key generate rsa general-keys modulus 2048
-!
-!
-ip ssh version 2
+{% template_include base %}
 !
 !
 ! //END BASE SECTION
