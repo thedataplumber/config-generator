@@ -1,9 +1,9 @@
-{% assign fw_pop_subnet = site_summary | subnet:28,17 %}
+{% assign fw_pop_subnet = site_summary | subnet:28,1 %}
 {% assign loopback_subnet = management_summary | subnet:28,1 %}
 {% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
-{% assign wired_user_subnet_1 = site_summary | subnet:25,1 %}
-{% assign trusted_wireless_subnet_1 = site_summary | subnet:25,2 %}
-{% assign inet_pop_subnet = site_summary | subnet:28,18 %}
+{% assign wired_user_subnet_1 = site_summary | subnet:25,3 %}
+{% assign trusted_wireless_subnet_1 = site_summary | subnet:25,4 %}
+{% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 ! =======
 ! READ ME
 ! =======

@@ -140,7 +140,7 @@ vlan {{wired_user_id_1}}
 vlan {{voice_id_1}}
  name {{voice_subnet_1 | cidr}}_VOICE_1
 vlan {{video_id_1}}
- name {{video_subnet_1 | cidr}}_VIDEO
+ name {{video_subnet_1 | cidr}}_VIDEO_1
 vlan {{trusted_wireless_id_1}}
  name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
 vlan {{guest_wireless_id}}
