@@ -181,14 +181,80 @@ vlan {{net_mgmt_id}}
  name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
 vlan {{server_id_1}}
  name {{server_subnet_1 | cidr}}_SERVERS
+{% if device_id == "01" %}
 vlan {{wired_user_id_1}}
  name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
 vlan {{voice_id_1}}
  name {{voice_subnet_1 | cidr}}_VOICE_1
-vlan {{video_id_1}}
- name {{video_subnet_1 | cidr}}_VIDEO_1
 vlan {{trusted_wireless_id_1}}
  name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
+{% endif %}
+{% if device_id == "02" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_2 | cidr}}_WIRED_USERS_2
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_2
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_2 | cidr}}_WIRELESS_USERS_2
+{% endif %}
+{% if device_id == "03" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_3 | cidr}}_WIRED_USERS_3
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_3
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_3 | cidr}}_WIRELESS_USERS_3
+{% endif %}
+{% if device_id == "04" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_4 | cidr}}_WIRED_USERS_4
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_4
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_4 | cidr}}_WIRELESS_USERS_4
+{% endif %}
+{% if device_id == "05" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_5 | cidr}}_WIRED_USERS_5
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_5
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_5 | cidr}}_WIRELESS_USERS_5
+{% endif %}
+{% if device_id == "06" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_6 | cidr}}_WIRED_USERS_6
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_6
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_6 | cidr}}_WIRELESS_USERS_6
+{% endif %}
+{% if device_id == "07" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_7 | cidr}}_WIRED_USERS_7
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_7
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_7 | cidr}}_WIRELESS_USERS_7
+{% endif %}
+{% if device_id == "08" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_8 | cidr}}_WIRED_USERS_8
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_8
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_8 | cidr}}_WIRELESS_USERS_8
+{% endif %}
+{% if device_id == "09" %}
+vlan {{wired_user_id_1}}
+ name {{wired_user_subnet_9 | cidr}}_WIRED_USERS_9
+vlan {{voice_id_1}}
+ name {{voice_subnet_1 | cidr}}_VOICE_9
+vlan {{trusted_wireless_id_1}}
+ name {{trusted_wireless_subnet_9 | cidr}}_WIRELESS_USERS_9
+{% endif %}
+vlan {{video_id_1}}
+ name {{video_subnet_1 | cidr}}_VIDEO_1
 vlan {{guest_wireless_id}}
  name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
 vlan {{inet_id}}
