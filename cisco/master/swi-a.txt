@@ -344,7 +344,6 @@ interface range GigabitEthernet2/0/13-48
  queue-set 1
  mls qos vlan-based
  spanning-tree portfast
-{% endif %}
 !
 interface Vlan1
  no ip address
