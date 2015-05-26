@@ -1,3 +1,49 @@
+{% if site_summary | mask_bit_length == 20 %}
+{% assign fw_pop_subnet = site_summary | subnet:28,1 %}
+{% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
+{% assign loopback_subnet = management_summary | subnet:28,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
+{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
+{% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
+{% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
+{% assign trusted_wireless_subnet_2 = site_summary | subnet:24,6 %}
+{% assign wired_user_subnet_3 = site_summary | subnet:24,7 %}
+{% assign trusted_wireless_subnet_3 = site_summary | subnet:24,8 %}
+{% assign wired_user_subnet_4 = site_summary | subnet:24,9 %}
+{% assign trusted_wireless_subnet_4 = site_summary | subnet:24,10 %}
+{% assign wired_user_subnet_5 = site_summary | subnet:24,11 %}
+{% assign trusted_wireless_subnet_5 = site_summary | subnet:24,12 %}
+{% assign inet_pop_subnet = site_summary | subnet:28,2 %}
+{% endif %}
+{% if site_summary | mask_bit_length == 19 %}
+{% assign fw_pop_subnet = site_summary | subnet:28,1 %}
+{% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
+{% assign loopback_subnet = management_summary | subnet:28,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
+{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
+{% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
+{% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
+{% assign trusted_wireless_subnet_2 = site_summary | subnet:24,6 %}
+{% assign wired_user_subnet_3 = site_summary | subnet:24,7 %}
+{% assign trusted_wireless_subnet_3 = site_summary | subnet:24,8 %}
+{% assign wired_user_subnet_4 = site_summary | subnet:24,9 %}
+{% assign trusted_wireless_subnet_4 = site_summary | subnet:24,10 %}
+{% assign wired_user_subnet_5 = site_summary | subnet:24,11 %}
+{% assign trusted_wireless_subnet_5 = site_summary | subnet:24,12 %}
+{% assign wired_user_subnet_6 = site_summary | subnet:24,13 %}
+{% assign trusted_wireless_subnet_6 = site_summary | subnet:24,14 %}
+{% assign wired_user_subnet_7 = site_summary | subnet:24,15 %}
+{% assign trusted_wireless_subnet_7 = site_summary | subnet:24,16 %}
+{% assign wired_user_subnet_8 = site_summary | subnet:24,17 %}
+{% assign trusted_wireless_subnet_8 = site_summary | subnet:24,18 %}
+{% assign wired_user_subnet_9 = site_summary | subnet:24,19 %}
+{% assign trusted_wireless_subnet_9 = site_summary | subnet:24,20 %}
+{% assign wired_user_subnet_10 = site_summary | subnet:24,21 %}
+{% assign trusted_wireless_subnet_10 = site_summary | subnet:24,22 %}
+{% assign inet_pop_subnet = site_summary | subnet:28,2 %}
+{% endif %}
 ! =======
 ! READ ME
 ! =======
