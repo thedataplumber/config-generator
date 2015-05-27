@@ -668,9 +668,11 @@ route-map E1-into-E3 deny 10
 !
 route-map E1-into-E3 permit 20
   set tag {{tunnel_3_ip | route_tag}}
-! 
+!
+{% if mpls_inet %}
 route-map BGP-into-E1 permit 10
 set tag {{bgp_asn}}
+{% endif %}
 !
 !
 ! //END ROUTING CONTROL DMVPN3 SECTION
@@ -851,7 +853,7 @@ ip access-list extended IPSEC-IA
   permit icmp any any time-exceeded
   permit icmp any any unreachable
   permit tcp any any established
-  deny udp any host {{ce_ip}} eq ntp
+  deny udp any host {{ce_ip | address}} eq ntp
   deny udp any any eq snmp
   permit udp any any
   permit tcp any gt 1024 any gt 1024
