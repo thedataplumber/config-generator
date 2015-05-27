@@ -552,11 +552,11 @@ interface GigabitEthernet0/1.{{trusted_wireless_id_1}}
   ip address {{trusted_wireless_subnet_1 | host_address:2}} {{trusted_wireless_subnet_1 | mask}}
   ip helper-address {{ip_helper_1}}
   ip helper-address {{ip_helper_2}}
-  standby {{trusted_wireless_id_1}} ip {{trusted_wireless_subnet_1 | host_address:1}}
-  standby {{trusted_wireless_id_1}} priority 90
-  standby {{trusted_wireless_id_1}} preempt delay minimum 90
-  standby {{trusted_wireless_id_1}} authentication WIRELESS_USERS
-  standby {{trusted_wireless_id_1}} track 999 decrement 10
+  standby {{trusted_wireless_id_1 | divided_by:10}} ip {{trusted_wireless_subnet_1 | host_address:1}}
+  standby {{trusted_wireless_id_1 | divided_by:10}} priority 90
+  standby {{trusted_wireless_id_1 | divided_by:10}} preempt delay minimum 90
+  standby {{trusted_wireless_id_1 | divided_by:10}} authentication WIRELESS_USERS
+  standby {{trusted_wireless_id_1 | divided_by:10}} track 999 decrement 10
 {% endunless %}
 {% endif %}
 {% unless dmvpn3 and dmvpn4 %}
@@ -566,10 +566,10 @@ interface GigabitEthernet0/1.{{trusted_wireless_id_1}}
   ip address {{trusted_wireless_subnet_1 | host_address:3}} {{trusted_wireless_subnet_1 | mask}}
   ip helper-address {{ip_helper_1}}
   ip helper-address {{ip_helper_2}}
-  standby {{trusted_wireless_id_1}} ip {{trusted_wireless_subnet_1 | host_address:1}}
-  standby {{trusted_wireless_id_1}} priority 85
-  standby {{trusted_wireless_id_1}} preempt
-  standby {{trusted_wireless_id_1}} authentication WIRELESS_USERS
+  standby {{trusted_wireless_id_1 | divided_by:10}} ip {{trusted_wireless_subnet_1 | host_address:1}}
+  standby {{trusted_wireless_id_1 | divided_by:10}} priority 85
+  standby {{trusted_wireless_id_1 | divided_by:10}} preempt
+  standby {{trusted_wireless_id_1 | divided_by:10}} authentication WIRELESS_USERS
 {% endif %}
 {% endunless %}
 !
