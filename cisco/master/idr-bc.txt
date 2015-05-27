@@ -324,10 +324,10 @@ interface Loopback0
 !
 interface GigabitEthernet0/0
 {% if inet_burst_bps != "" %}
-  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}} {% if lec_circuit_id != "" %}({{lec}} {{lec_circuit_id}}){% endif %}
+  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}}/{{inet_burst_bps | short_bandwidth}} {% if lec_circuit_id != "" %}({{lec | upcase}} {{lec_circuit_id}}){% endif %}
 {% endif %}
 {% if inet_burst_bps == "" %}
-  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}} {% if lec_circuit_id != "" %}({{lec}} {{lec_circuit_id}}){% endif %}
+  description [FW] {{isp | upcase}} {{inet_cct_id}} {{inet_cir_bps | short_bandwidth}} {% if lec_circuit_id != "" %}({{lec | upcase}} {{lec_circuit_id}}){% endif %}
 {% endif %}
 {% unless mpls_inet %}
   ip vrf forwarding inet
