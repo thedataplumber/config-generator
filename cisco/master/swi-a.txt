@@ -164,7 +164,7 @@ interface range GigabitEthernet1/0/4
  spanning-tree portfast
 !
 interface range GigabitEthernet1/0/5
- description [F] {{country | downcase}}-{{site_code | downcase}}-fwb01 DMZ
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb01 MGMT
  switchport access vlan {{net_mgmt_id}}
  switchport mode access
  srr-queue bandwidth share 1 15 70 5
@@ -275,7 +275,7 @@ interface range GigabitEthernet2/0/4
  spanning-tree portfast
 !
 interface range GigabitEthernet2/0/5
- description [F] {{country | downcase}}-{{site_code | downcase}}-fwb02 DMZ
+ description [F] {{country | downcase}}-{{site_code | downcase}}-fwb02 MGMT
  switchport access vlan {{net_mgmt_id}}
  switchport mode access
  srr-queue bandwidth share 1 15 70 5
