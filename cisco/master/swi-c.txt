@@ -1,9 +1,35 @@
-{% if site_summary | mask_bit_length == 20 %}
+{% assign site_summary_mask_bit = site_summary | mask_bit_length %}
+{% assign voice_summary_mask_bit = voice_summary | mask_bit_length %}
+
+{% assign loopback_subnet = management_summary | subnet:27,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:27,2 %}
+
+{% if site_summary_mask_bit == 21 %}
+{% assign voice_subnet_1 = voice_summary | subnet:24,1 %}
+{% assign voice_subnet_2 = voice_summary | subnet:24,2 %}
+{% assign voice_subnet_3 = voice_summary | subnet:24,3 %}
+{% assign voice_subnet_4 = voice_summary | subnet:24,4 %}
+{% assign voice_subnet_5 = voice_summary | subnet:24,5 %}
+{% endif %}
+
+{% if site_summary_mask_bit == 20 %}
+{% assign voice_subnet_1 = voice_summary | subnet:24,1 %}
+{% assign voice_subnet_2 = voice_summary | subnet:24,2 %}
+{% assign voice_subnet_3 = voice_summary | subnet:24,3 %}
+{% assign voice_subnet_4 = voice_summary | subnet:24,4 %}
+{% assign voice_subnet_5 = voice_summary | subnet:24,5 %}
+{% assign voice_subnet_6 = voice_summary | subnet:24,6 %}
+{% assign voice_subnet_7 = voice_summary | subnet:24,7 %}
+{% assign voice_subnet_8 = voice_summary | subnet:24,8 %}
+{% assign voice_subnet_9 = voice_summary | subnet:24,9 %}
+{% endif %}
+
+{% assign video_subnet_1 = video_summary %}
+
+{% if site_summary_mask_bit == 20 %}
 {% assign fw_pop_subnet = site_summary | subnet:28,1 %}
 {% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
-{% assign loopback_subnet = management_summary | subnet:28,1 %}
-{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
-{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign server_subnet_1 = site_summary | subnet:24,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
 {% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
@@ -16,12 +42,10 @@
 {% assign trusted_wireless_subnet_5 = site_summary | subnet:24,12 %}
 {% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 {% endif %}
-{% if site_summary | mask_bit_length == 19 %}
+{% if site_summary_mask_bit == 19 %}
 {% assign fw_pop_subnet = site_summary | subnet:28,1 %}
 {% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
-{% assign loopback_subnet = management_summary | subnet:28,1 %}
-{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
-{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign server_subnet_1 = site_summary | subnet:24,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
 {% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
@@ -150,24 +174,13 @@ trust dscp
 ! //END QOS SECTION
 !
 !
-! //START VTP SECTION
+! //START LAYER2 SECTION
 !
 !
-vtp domain {{site_code}}
-vtp mode transparent
+{% template_include layer2 %}
 !
 !
-! //END VTP SECTION
-!
-!
-! //START SPANNING-TREE SECTION
-!
-!
-spanning-tree mode rapid-pvst
-spanning-tree portfast bpduguard default
-!
-!
-! //END SPANNING-TREE SECTION
+! //END LAYER2 SECTION
 !
 !
 ! //START VLAN SECTION
@@ -181,82 +194,95 @@ vlan {{net_mgmt_id}}
  name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
 vlan {{server_id_1}}
  name {{server_subnet_1 | cidr}}_SERVERS
-{% if device_id == "01" %}
+{% case device_id %}
+(% when "01" %}
 vlan {{wired_user_id_1}}
  name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+{% if voice %}
 vlan {{voice_id_1}}
  name {{voice_subnet_1 | cidr}}_VOICE_1
+{% endif %}
 vlan {{trusted_wireless_id_1}}
  name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
-{% endif %}
-{% if device_id == "02" %}
-vlan {{wired_user_id_1}}
+(% when "02" %}
+vlan {{wired_user_id_2}}
  name {{wired_user_subnet_2 | cidr}}_WIRED_USERS_2
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_2
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_2}}
+ name {{voice_subnet_2 | cidr}}_VOICE_2
+{% endif %}
+vlan {{trusted_wireless_id_2}}
  name {{trusted_wireless_subnet_2 | cidr}}_WIRELESS_USERS_2
-{% endif %}
-{% if device_id == "03" %}
-vlan {{wired_user_id_1}}
+(% when "03" %}
+vlan {{wired_user_id_3}}
  name {{wired_user_subnet_3 | cidr}}_WIRED_USERS_3
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_3
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_3}}
+ name {{voice_subnet_3 | cidr}}_VOICE_3
+{% endif %}
+vlan {{trusted_wireless_id_3}}
  name {{trusted_wireless_subnet_3 | cidr}}_WIRELESS_USERS_3
-{% endif %}
-{% if device_id == "04" %}
-vlan {{wired_user_id_1}}
+(% when "04" %}
+vlan {{wired_user_id_4}}
  name {{wired_user_subnet_4 | cidr}}_WIRED_USERS_4
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_4
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_4}}
+ name {{voice_subnet_4 | cidr}}_VOICE_4
+{% endif %}
+vlan {{trusted_wireless_id_4}}
  name {{trusted_wireless_subnet_4 | cidr}}_WIRELESS_USERS_4
-{% endif %}
-{% if device_id == "05" %}
-vlan {{wired_user_id_1}}
+(% when "05" %}
+vlan {{wired_user_id_5}}
  name {{wired_user_subnet_5 | cidr}}_WIRED_USERS_5
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_5
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_5}}
+ name {{voice_subnet_5 | cidr}}_VOICE_5
+{% endif %}
+vlan {{trusted_wireless_id_5}}
  name {{trusted_wireless_subnet_5 | cidr}}_WIRELESS_USERS_5
-{% endif %}
-{% if device_id == "06" %}
-vlan {{wired_user_id_1}}
+(% when "06" %}
+vlan {{wired_user_id_6}}
  name {{wired_user_subnet_6 | cidr}}_WIRED_USERS_6
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_6
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_6}}
+ name {{voice_subnet_6 | cidr}}_VOICE_6
+{% endif %}
+vlan {{trusted_wireless_id_6}}
  name {{trusted_wireless_subnet_6 | cidr}}_WIRELESS_USERS_6
-{% endif %}
-{% if device_id == "07" %}
-vlan {{wired_user_id_1}}
+(% when "06" %}
+vlan {{wired_user_id_7}}
  name {{wired_user_subnet_7 | cidr}}_WIRED_USERS_7
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_7
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_7}}
+ name {{voice_subnet_7 | cidr}}_VOICE_7
+{% endif %}
+vlan {{trusted_wireless_id_7}}
  name {{trusted_wireless_subnet_7 | cidr}}_WIRELESS_USERS_7
-{% endif %}
-{% if device_id == "08" %}
-vlan {{wired_user_id_1}}
+(% when "08" %}
+vlan {{wired_user_id_8}}
  name {{wired_user_subnet_8 | cidr}}_WIRED_USERS_8
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_8
-vlan {{trusted_wireless_id_1}}
+{% if voice %}
+vlan {{voice_id_8}}
+ name {{voice_subnet_8 | cidr}}_VOICE_8
+{% endif %}
+vlan {{trusted_wireless_id_8}}
  name {{trusted_wireless_subnet_8 | cidr}}_WIRELESS_USERS_8
-{% endif %}
-{% if device_id == "09" %}
-vlan {{wired_user_id_1}}
+(% when "09" %}
+vlan {{wired_user_id_9}}
  name {{wired_user_subnet_9 | cidr}}_WIRED_USERS_9
-vlan {{voice_id_1}}
- name {{voice_subnet_1 | cidr}}_VOICE_9
-vlan {{trusted_wireless_id_1}}
- name {{trusted_wireless_subnet_9 | cidr}}_WIRELESS_USERS_9
+{% if voice %}
+vlan {{voice_id_9}}
+ name {{voice_subnet_9 | cidr}}_VOICE_9
 {% endif %}
+ vlan {{trusted_wireless_id_9}}
+ name {{trusted_wireless_subnet_9 | cidr}}_WIRELESS_USERS_9
+{% endcase %}
+{% if vc %}
 vlan {{video_id_1}}
  name {{video_subnet_1 | cidr}}_VIDEO_1
+{% endif %}
 vlan {{guest_wireless_id}}
- name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
+ name 192.168.1.0/24_GUEST_WIRELESS
 vlan {{inet_id}}
  name {{inet_subnet | cidr}}_INET_POP
 vlan {{native_id}}
@@ -272,15 +298,129 @@ vlan {{native_id}}
 interface Port-channel{{device_id | plus:'0'}}
  description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 {{device_id | plus:'0'}}
  switchport trunk native vlan {{native_id}}
+{% if voice and vc %}
+{% case device_id %}
+{% when "01" %}
  switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_1}},{{voice_id_1}},{{video_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}},{{inet_id}}
+{% when "02" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_2}},{{voice_id_2}},{{video_id_1}},{{trusted_wireless_id_2}},{{guest_wireless_id}},{{inet_id}}
+{% when "03" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_3}},{{voice_id_3}},{{video_id_1}},{{trusted_wireless_id_3}},{{guest_wireless_id}},{{inet_id}}
+{% when "04" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_4}},{{voice_id_4}},{{video_id_1}},{{trusted_wireless_id_4}},{{guest_wireless_id}},{{inet_id}}
+{% when "05" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_5}},{{voice_id_5}},{{video_id_1}},{{trusted_wireless_id_5}},{{guest_wireless_id}},{{inet_id}}
+{% when "06" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_6}},{{voice_id_6}},{{video_id_1}},{{trusted_wireless_id_6}},{{guest_wireless_id}},{{inet_id}}
+{% when "07" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_7}},{{voice_id_7}},{{video_id_1}},{{trusted_wireless_id_7}},{{guest_wireless_id}},{{inet_id}}
+{% when "08" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_8}},{{voice_id_8}},{{video_id_1}},{{trusted_wireless_id_8}},{{guest_wireless_id}},{{inet_id}}
+{% when "09" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_9}},{{voice_id_9}},{{video_id_1}},{{trusted_wireless_id_9}},{{guest_wireless_id}},{{inet_id}}
+{% endcase %}
+{% endif %}
+{% if voice %}
+{%unless vc %}
+{% case device_id %}
+{% when "01" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_1}},{{voice_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}},{{inet_id}}
+{% when "02" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_2}},{{voice_id_2}},{{trusted_wireless_id_2}},{{guest_wireless_id}},{{inet_id}}
+{% when "03" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_3}},{{voice_id_3}},{{trusted_wireless_id_3}},{{guest_wireless_id}},{{inet_id}}
+{% when "04" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_4}},{{voice_id_4}},{{trusted_wireless_id_4}},{{guest_wireless_id}},{{inet_id}}
+{% when "05" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_5}},{{voice_id_5}},{{trusted_wireless_id_5}},{{guest_wireless_id}},{{inet_id}}
+{% when "06" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_6}},{{voice_id_6}},{{trusted_wireless_id_6}},{{guest_wireless_id}},{{inet_id}}
+{% when "07" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_7}},{{voice_id_7}},{{trusted_wireless_id_7}},{{guest_wireless_id}},{{inet_id}}
+{% when "08" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_8}},{{voice_id_8}},{{trusted_wireless_id_8}},{{guest_wireless_id}},{{inet_id}}
+{% when "09" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_9}},{{voice_id_9}},{{trusted_wireless_id_9}},{{guest_wireless_id}},{{inet_id}}
+{% endcase %}
+{% endunless %}
+{% endif %}
+{% if vc %}
+{%unless voice %}
+{% case device_id %}
+{% when "01" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_1}},{{video_id_1}},{{trusted_wireless_id_1}},{{guest_wireless_id}},{{inet_id}}
+{% when "02" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_2}},{{video_id_1}},{{trusted_wireless_id_2}},{{guest_wireless_id}},{{inet_id}}
+{% when "03" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_3}},{{video_id_1}},{{trusted_wireless_id_3}},{{guest_wireless_id}},{{inet_id}}
+{% when "04" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_4}},{{video_id_1}},{{trusted_wireless_id_4}},{{guest_wireless_id}},{{inet_id}}
+{% when "05" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_5}},{{video_id_1}},{{trusted_wireless_id_5}},{{guest_wireless_id}},{{inet_id}}
+{% when "06" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_6}},{{video_id_1}},{{trusted_wireless_id_6}},{{guest_wireless_id}},{{inet_id}}
+{% when "07" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_7}},{{video_id_1}},{{trusted_wireless_id_7}},{{guest_wireless_id}},{{inet_id}}
+{% when "08" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_8}},{{video_id_1}},{{trusted_wireless_id_8}},{{guest_wireless_id}},{{inet_id}}
+{% when "09" %}
+ switchport trunk allowed vlan {{fw_pop_id}},{{wireless_pop_id}},{{net_mgmt_id}},{{server_id_1}},{{wired_user_id_9}},{{video_id_1}},{{trusted_wireless_id_9}},{{guest_wireless_id}},{{inet_id}}
+{% endcase %}
+{% endunless %}
+{% endif %}
  switchport mode trunk
  mls qos trust dscp
 !
 interface range GigabitEthernet1/0/4-48
  description USER
- switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% case device_id %}
+{% when "01" %}
+ switchport access vlan {{wired_user_id_1}}
+{% if voice %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
+{% when "02" %}
+ switchport access vlan {{wired_user_id_2}}
+{% if voice %}
+ switchport voice vlan {{voice_id_2}}
+{% endif %}
+{% when "03" %}
+ switchport access vlan {{wired_user_id_3}}
+{% if voice %}
+ switchport voice vlan {{voice_id_3}}
+{% endif %}
+{% when "04" %}
+ switchport access vlan {{wired_user_id_4}}
+{% if voice %}
+ switchport voice vlan {{voice_id_4}}
+{% endif %}
+{% when "05" %}
+ switchport access vlan {{wired_user_id_5}}
+{% if voice %}
+ switchport voice vlan {{voice_id_5}}
+{% endif %}
+{% when "06" %}
+ switchport access vlan {{wired_user_id_6}}
+{% if voice %}
+ switchport voice vlan {{voice_id_6}}
+{% endif %}
+{% when "07" %}
+ switchport access vlan {{wired_user_id_7}}
+{% if voice %}
+ switchport voice vlan {{voice_id_7}}
+{% endif %}
+{% when "08" %}
+ switchport access vlan {{wired_user_id_8}}
+{% if voice %}
+ switchport voice vlan {{voice_id_8}}
+{% endif %}
+{% when "09" %}
+ switchport access vlan {{wired_user_id_9}}
+{% if voice %}
+ switchport voice vlan {{voice_id_9}}
+{% endif %}
+{% endcase %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -290,9 +430,54 @@ interface range GigabitEthernet1/0/4-48
 {% if stack == "2" or if stack == "3" or if stack == "4"  %}
 interface range GigabitEthernet2/0/4-48
  description USER
- switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% case device_id %}
+{% when "01" %}
+ switchport access vlan {{wired_user_id_1}}
+{% if voice %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
+{% when "02" %}
+ switchport access vlan {{wired_user_id_2}}
+{% if voice %}
+ switchport voice vlan {{voice_id_2}}
+{% endif %}
+{% when "03" %}
+ switchport access vlan {{wired_user_id_3}}
+{% if voice %}
+ switchport voice vlan {{voice_id_3}}
+{% endif %}
+{% when "04" %}
+ switchport access vlan {{wired_user_id_4}}
+{% if voice %}
+ switchport voice vlan {{voice_id_4}}
+{% endif %}
+{% when "05" %}
+ switchport access vlan {{wired_user_id_5}}
+{% if voice %}
+ switchport voice vlan {{voice_id_5}}
+{% endif %}
+{% when "06" %}
+ switchport access vlan {{wired_user_id_6}}
+{% if voice %}
+ switchport voice vlan {{voice_id_6}}
+{% endif %}
+{% when "07" %}
+ switchport access vlan {{wired_user_id_7}}
+{% if voice %}
+ switchport voice vlan {{voice_id_7}}
+{% endif %}
+{% when "08" %}
+ switchport access vlan {{wired_user_id_8}}
+{% if voice %}
+ switchport voice vlan {{voice_id_8}}
+{% endif %}
+{% when "09" %}
+ switchport access vlan {{wired_user_id_9}}
+{% if voice %}
+ switchport voice vlan {{voice_id_9}}
+{% endif %}
+{% endcase %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -303,9 +488,54 @@ interface range GigabitEthernet2/0/4-48
 {% if stack == "3" or if stack == "4"  %}
 interface range GigabitEthernet3/0/1-48
  description USER
- switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% case device_id %}
+{% when "01" %}
+ switchport access vlan {{wired_user_id_1}}
+{% if voice %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
+{% when "02" %}
+ switchport access vlan {{wired_user_id_2}}
+{% if voice %}
+ switchport voice vlan {{voice_id_2}}
+{% endif %}
+{% when "03" %}
+ switchport access vlan {{wired_user_id_3}}
+{% if voice %}
+ switchport voice vlan {{voice_id_3}}
+{% endif %}
+{% when "04" %}
+ switchport access vlan {{wired_user_id_4}}
+{% if voice %}
+ switchport voice vlan {{voice_id_4}}
+{% endif %}
+{% when "05" %}
+ switchport access vlan {{wired_user_id_5}}
+{% if voice %}
+ switchport voice vlan {{voice_id_5}}
+{% endif %}
+{% when "06" %}
+ switchport access vlan {{wired_user_id_6}}
+{% if voice %}
+ switchport voice vlan {{voice_id_6}}
+{% endif %}
+{% when "07" %}
+ switchport access vlan {{wired_user_id_7}}
+{% if voice %}
+ switchport voice vlan {{voice_id_7}}
+{% endif %}
+{% when "08" %}
+ switchport access vlan {{wired_user_id_8}}
+{% if voice %}
+ switchport voice vlan {{voice_id_8}}
+{% endif %}
+{% when "09" %}
+ switchport access vlan {{wired_user_id_9}}
+{% if voice %}
+ switchport voice vlan {{voice_id_9}}
+{% endif %}
+{% endcase %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -316,9 +546,54 @@ interface range GigabitEthernet3/0/1-48
 {% if stack == "4"  %}
 interface range GigabitEthernet4/0/1-48
  description USER
- switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% case device_id %}
+{% when "01" %}
+ switchport access vlan {{wired_user_id_1}}
+{% if voice %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
+{% when "02" %}
+ switchport access vlan {{wired_user_id_2}}
+{% if voice %}
+ switchport voice vlan {{voice_id_2}}
+{% endif %}
+{% when "03" %}
+ switchport access vlan {{wired_user_id_3}}
+{% if voice %}
+ switchport voice vlan {{voice_id_3}}
+{% endif %}
+{% when "04" %}
+ switchport access vlan {{wired_user_id_4}}
+{% if voice %}
+ switchport voice vlan {{voice_id_4}}
+{% endif %}
+{% when "05" %}
+ switchport access vlan {{wired_user_id_5}}
+{% if voice %}
+ switchport voice vlan {{voice_id_5}}
+{% endif %}
+{% when "06" %}
+ switchport access vlan {{wired_user_id_6}}
+{% if voice %}
+ switchport voice vlan {{voice_id_6}}
+{% endif %}
+{% when "07" %}
+ switchport access vlan {{wired_user_id_7}}
+{% if voice %}
+ switchport voice vlan {{voice_id_7}}
+{% endif %}
+{% when "08" %}
+ switchport access vlan {{wired_user_id_8}}
+{% if voice %}
+ switchport voice vlan {{voice_id_8}}
+{% endif %}
+{% when "09" %}
+ switchport access vlan {{wired_user_id_9}}
+{% if voice %}
+ switchport voice vlan {{voice_id_9}}
+{% endif %}
+{% endcase %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1

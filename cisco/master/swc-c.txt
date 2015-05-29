@@ -1,9 +1,35 @@
-{% if site_summary | mask_bit_length == 20 %}
+{% assign site_summary_mask_bit = site_summary | mask_bit_length %}
+{% assign voice_summary_mask_bit = voice_summary | mask_bit_length %}
+
+{% assign loopback_subnet = management_summary | subnet:27,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:27,2 %}
+
+{% if site_summary_mask_bit == 21 %}
+{% assign voice_subnet_1 = voice_summary | subnet:24,1 %}
+{% assign voice_subnet_2 = voice_summary | subnet:24,2 %}
+{% assign voice_subnet_3 = voice_summary | subnet:24,3 %}
+{% assign voice_subnet_4 = voice_summary | subnet:24,4 %}
+{% assign voice_subnet_5 = voice_summary | subnet:24,5 %}
+{% endif %}
+
+{% if site_summary_mask_bit == 20 %}
+{% assign voice_subnet_1 = voice_summary | subnet:24,1 %}
+{% assign voice_subnet_2 = voice_summary | subnet:24,2 %}
+{% assign voice_subnet_3 = voice_summary | subnet:24,3 %}
+{% assign voice_subnet_4 = voice_summary | subnet:24,4 %}
+{% assign voice_subnet_5 = voice_summary | subnet:24,5 %}
+{% assign voice_subnet_6 = voice_summary | subnet:24,6 %}
+{% assign voice_subnet_7 = voice_summary | subnet:24,7 %}
+{% assign voice_subnet_8 = voice_summary | subnet:24,8 %}
+{% assign voice_subnet_9 = voice_summary | subnet:24,9 %}
+{% endif %}
+
+{% assign video_subnet_1 = video_summary %}
+
+{% if site_summary_mask_bit == 20 %}
 {% assign fw_pop_subnet = site_summary | subnet:28,1 %}
 {% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
-{% assign loopback_subnet = management_summary | subnet:28,1 %}
-{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
-{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign server_subnet_1 = site_summary | subnet:24,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
 {% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
@@ -16,12 +42,10 @@
 {% assign trusted_wireless_subnet_5 = site_summary | subnet:24,12 %}
 {% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 {% endif %}
-{% if site_summary | mask_bit_length == 19 %}
+{% if site_summary_mask_bit == 19 %}
 {% assign fw_pop_subnet = site_summary | subnet:28,1 %}
 {% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
-{% assign loopback_subnet = management_summary | subnet:28,1 %}
-{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
-{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign server_subnet_1 = site_summary | subnet:24,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
 {% assign wired_user_subnet_2 = site_summary | subnet:24,5 %}
@@ -72,7 +96,7 @@
 ! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
 !
 !
-{{loop0_ip}} | {{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{loopback_subnet | host_address:3}} | {{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:1}} | ge1-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:3}} | ge2-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:5}} | ge1-0-2.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
@@ -101,6 +125,7 @@
 {% when "9" %}
 {{wired_user_subnet_9 | host_address:1}} | vl{{wired_user_id_9}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {% endcase %}
+{% if voice %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
 {{voice_subnet_1 | host_address:1}} | vl{{voice_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
@@ -121,7 +146,10 @@
 {% when "9" %}
 {{voice_subnet_9 | host_address:1}} | vl{{voice_id_9}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {% endcase %}
+{% endif %}
+{% if vc %}
 {{video_subnet_1 | host_address:1}} | vl{{video_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{% endif %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
 {{trusted_wireless_subnet_1 | host_address:1}} | vl{{trusted_wireless_id_1}}.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
@@ -183,25 +211,14 @@ hostname {{country | downcase}}-{{site_code | downcase}}-swc01
 ! //END QOS SECTION
 !
 !
-! //START VTP SECTION
+! //START LAYER2 SECTION
 !
 !
-vtp domain {{site_code}}
-vtp mode transparent
-!
-!
-! //END VTP SECTION
-!
-!
-! //START SPANNING-TREE SECTION
-!
-!
-spanning-tree mode rapid-pvst
-spanning-tree portfast bpduguard default
+{% template_include layer2 %}
 spanning-tree vlan 1-4094 priority 0
 !
 !
-! //END SPANNING-TREE SECTION
+! //END LAYER2 SECTION
 !
 !
 ! //START VLAN SECTION
@@ -243,6 +260,7 @@ vlan {{wired_user_id_8}}
 vlan {{wired_user_id_9}}
  name {{wired_user_subnet_9 | cidr}}_WIRED_USERS_9
 {% endcase %}
+{% if voice %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
 vlan {{voice_id_1}}
@@ -271,8 +289,11 @@ vlan {{voice_id_8}}
 vlan {{voice_id_9}}
  name {{voice_subnet_9 | cidr}}_VOICE_9
 {% endcase %}
+{% endif %}
+{% if vc %}
 vlan {{video_id_1}}
  name {{video_subnet_1 | cidr}}_VIDEO_1
+{% endif %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
 vlan {{trusted_wireless_id_1}}
@@ -302,7 +323,7 @@ vlan {{trusted_wireless_id_9}}
  name {{trusted_wireless_subnet_9 | cidr}}_WIRELESS_USERS_9
 {% endcase %}
 vlan {{guest_wireless_id}}
- name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
+ name 192.168.1.0/24_GUEST_WIRELESS
 vlan {{inet_id}}
  name {{inet_subnet | cidr}}_INET_POP
 vlan {{native_id}}
@@ -317,7 +338,7 @@ vlan {{native_id}}
 !
 interface Loopback0
  description MGMT
- ip address {{loop0_ip}} 255.255.255.255 
+ ip address {{loopback_subnet | host_address:3}} 255.255.255.255 
 !
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
@@ -618,6 +639,7 @@ interface vlan {{wired_user_id_9}}
  ip helper-address {{ip_helper_2}}
 {% endcase %}
 !
+{% if voice %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
 interface vlan {{voice_id_1}}
@@ -681,6 +703,7 @@ interface vlan {{voice_id_9}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 {% endcase %}
+{% endif %}
 !
 interface vlan {{video_id_1}}
  description VIDEO
@@ -763,7 +786,7 @@ router eigrp 1
  no auto-summary
  no eigrp log-neighbor-changes
  nsf 
- network {{loop0_ip}} 0.0.0.0
+ network {{loopback_subnet | host_address:3}} 0.0.0.0
  network {{infrastructure_summary | host_address:1}} 0.0.0.0
  network {{infrastructure_summary | host_address:3}} 0.0.0.0
  network {{infrastructure_summary | host_address:5}} 0.0.0.0
@@ -791,6 +814,7 @@ router eigrp 1
 {% when "9" %}
  network {{wired_user_subnet_9 | host_address:1}} 0.0.0.0
 {% endcase %}
+{% if voice %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
  network {{voice_subnet_1 | host_address:1}} 0.0.0.0
@@ -811,7 +835,10 @@ router eigrp 1
 {% when "9" %}
  network {{voice_subnet_9 | host_address:1}} 0.0.0.0
 {% endcase %}
+{% endif %}
+{% if vc %}
  network {{video_subnet_1 | host_address:1}} 0.0.0.0
+{% endif %}
 {% case access_switch_stacks %}
 {% when "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" %}
  network {{trusted_wireless_subnet_1 | host_address:1}} 0.0.0.0

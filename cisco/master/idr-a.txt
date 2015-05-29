@@ -2,6 +2,7 @@
 {% assign loopback_subnet = management_summary | subnet:28,1 %}
 {% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:25,3 %}
+{% assign voice_subnet_1 = voice_summary %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:25,4 %}
 {% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 ! =======
@@ -137,21 +138,21 @@ key chain EIGRP
 ! //START QOS SECTION
 !
 !
-{% if qos_voip or qos_vc %}
-{% if qos_voip %}
+{% if voip or vc %}
+{% if voip %}
 class-map match-all VoIP
   match  dscp ef
 {% endif %}
-{% if qos_vc %}
+{% if vc %}
 class-map match-all VidConf
   match ip dscp af41
 {% endif %}
 policy-map CHILD
-{% if qos_voip %}
+{% if voip %}
  class VoIP
   priority {{inet_cir_bps | divided_by:100000 | times:5}}
 {% endif %}
-{% if qos_vc %}
+{% if vc %}
 class VidConf
   bandwidth {{inet_cir_bps | divided_by:100000 | times:10}}
 {% endif %}
@@ -165,7 +166,7 @@ policy-map QOS_INET
 {% if inet_burst_bps == "" %}
    shape average {{inet_cir_bps | divided_by:100 | times:90}}
 {% endif %}
-{% if qos_voip or qos_vc %}
+{% if voip or vc %}
   service-policy CHILD
 {% endif %}
 !
@@ -505,6 +506,7 @@ interface GigabitEthernet0/1.{{wired_user_id_1}}
 {% endif %}
 {% endunless %}
 !
+{% if voip %}
 interface GigabitEthernet0/1.{{voice_id_1}}
 {% if dmvpn3 %}
   description [F] {{country | downcase}}-{{site_code | downcase}}-swi01 1/0/1
@@ -538,6 +540,7 @@ interface GigabitEthernet0/1.{{voice_id_1}}
   standby {{voice_id_1}} authentication VOICE
 {% endif %}
 {% endunless %}
+{% endif %}
 !
 interface GigabitEthernet0/1.{{trusted_wireless_id_1}}
 {% if dmvpn3 %}

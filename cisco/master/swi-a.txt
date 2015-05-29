@@ -2,6 +2,7 @@
 {% assign loopback_subnet = management_summary | subnet:28,1 %}
 {% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:25,3 %}
+{% assign voice_subnet_1 = voice_summary %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:25,4 %}
 {% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 ! =======
@@ -86,7 +87,7 @@ trust dscp
 {% template_include layer2 %}
 !
 !
-! //END SPANNING-TREE SECTION
+! //END LAYER2 SECTION
 !
 !
 ! //START VLAN SECTION
@@ -98,12 +99,14 @@ vlan {{net_mgmt_id}}
  name {{net_mgmt_subnet | cidr}}_NETWORK_MGMT
 vlan {{wired_user_id_1}}
  name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+{% if voip %}
 vlan {{voice_id_1}}
  name {{voice_subnet_1 | cidr}}_VOICE_1
+{% endif %}
 vlan {{trusted_wireless_id_1}}
  name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
 vlan {{guest_wireless_id}}
- name {{guest_wireless_subnet | cidr}}_GUEST_WIRELESS
+ name 192.168.1.0/24_GUEST_WIRELESS
 vlan {{inet_id}}
  name {{inet_subnet | cidr}}_INET_POP
 vlan {{native_id}}
@@ -227,7 +230,9 @@ interface range GigabitEthernet1/0/13-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -338,7 +343,9 @@ interface range GigabitEthernet2/0/13-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1

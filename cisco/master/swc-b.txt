@@ -4,6 +4,8 @@
 {% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
 {% assign server_subnet_1 = management_summary | subnet:24,2 %}
 {% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
+{% assign voice_subnet_1 = voice_summary %}
+{% assign video_subnet_1 = video_summary %}
 {% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
 {% assign inet_pop_subnet = site_summary | subnet:28,2 %}
 ! =======
@@ -25,7 +27,7 @@
 ! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
 !
 !
-{{loop0_ip}} | {{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
+{{loopback_subnet | host_address:3}} | {{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:1}} | ge1-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:3}} | ge2-0-1.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
 {{infrastructure_summary | host_address:5}} | ge1-0-2.{{country | downcase}}-{{site_code | downcase}}-swc01.ptns.pearson.com
@@ -92,25 +94,14 @@ trust dscp
 ! //END QOS SECTION
 !
 !
-! //START VTP SECTION
+! //START LAYER2 SECTION
 !
 !
-vtp domain {{site_code}}
-vtp mode transparent
-!
-!
-! //END VTP SECTION
-!
-!
-! //START SPANNING-TREE SECTION
-!
-!
-spanning-tree mode rapid-pvst
-spanning-tree portfast bpduguard default
+{% template_include layer2 %}
 spanning-tree vlan 1-4094 priority 0
 !
 !
-! //END SPANNING-TREE SECTION
+! //END LAYER2 SECTION
 !
 !
 ! //START VLAN SECTION
@@ -126,10 +117,14 @@ vlan {{server_id_1}}
  name {{server_subnet_1 | cidr}}_SERVERS
 vlan {{wired_user_id_1}}
  name {{wired_user_subnet_1 | cidr}}_WIRED_USERS_1
+{% if voip %}
 vlan {{voice_id_1}}
  name {{voice_subnet_1 | cidr}}_VOICE_1
+{% endif %}
+{% if vc %}
 vlan {{video_id_1}}
  name {{video_subnet_1 | cidr}}_VIDEO_1
+{% endif %}
 vlan {{trusted_wireless_id_1}}
  name {{trusted_wireless_subnet_1 | cidr}}_WIRELESS_USERS_1
 vlan {{guest_wireless_id}}
@@ -148,7 +143,7 @@ vlan {{native_id}}
 !
 interface Loopback0
  description MGMT
- ip address {{loop0_ip}} 255.255.255.255 
+ ip address {{loopback_subnet | host_address:3}} 255.255.255.255 
 !
 interface GigabitEthernet1/0/1
  description [F] {{country | downcase}}-{{site_code | downcase}}-idr01 0/1
@@ -202,7 +197,9 @@ interface range GigabitEthernet1/0/4-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -213,7 +210,9 @@ interface range GigabitEthernet2/0/4-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -225,7 +224,9 @@ interface range GigabitEthernet3/0/1-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -238,7 +239,9 @@ interface range GigabitEthernet4/0/1-48
  description USER
  switchport access vlan {{wired_user_id_1}}
  switchport mode access
+{% if voip %}
  switchport voice vlan {{voice_id_1}}
+{% endif %}
  srr-queue bandwidth share 1 15 70 5
  priority-queue out
  queue-set 1
@@ -274,17 +277,21 @@ interface vlan {{wired_user_id_1}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
 !
+{% if voip %}
 interface vlan {{voice_id_1}}
  description VOICE
  ip address {{voice_subnet_1 | host_address:1}} {{voice_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
+{% endif %}
 !
+{% if vc %}
 interface vlan {{video_id_1}}
  description VIDEO
  ip address {{video_subnet_1 | host_address:1}} {{video_subnet_1 | mask}}
  ip helper-address {{ip_helper_1}}
  ip helper-address {{ip_helper_2}}
+{% endif %}
 !
 interface vlan {{trusted_wireless_id_1}}
  description WIRELESS_USERS
@@ -302,7 +309,7 @@ interface vlan {{trusted_wireless_id_1}}
 router eigrp 1
  no auto-summary
  no eigrp log-neighbor-changes 
- network {{loop0_ip}} 0.0.0.0
+ network {{loopback_subnet | host_address:3}} 0.0.0.0
  network {{infrastructure_summary | host_address:1}} 0.0.0.0
  network {{infrastructure_summary | host_address:3}} 0.0.0.0
  network {{infrastructure_summary | host_address:5}} 0.0.0.0
@@ -312,8 +319,12 @@ router eigrp 1
  network {{net_mgmt_subnet | host_address:1}} 0.0.0.0
  network {{server_subnet_1 | host_address:1}} 0.0.0.0
  network {{wired_user_subnet_1 | host_address:1}} 0.0.0.0
+{% if voip %}
  network {{voice_subnet_1 | host_address:1}} 0.0.0.0
+{% endif %}
+{% if vc %}
  network {{video_subnet_1 | host_address:1}} 0.0.0.0
+{% endif %}
  network {{trusted_wireless_subnet_1 | host_address:1}} 0.0.0.0
  passive-interface default
  no passive-interface GigabitEthernet1/0/1
