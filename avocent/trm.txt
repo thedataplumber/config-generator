@@ -1,0 +1,22 @@
+{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
+! =======
+! READ ME
+! =======
+!
+Read me.
+!
+! ====
+! IPAM
+! ====
+!
+! The following IPs have been pre-assigned in this configuration.  
+! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to ipam.pearson.com as required
+!
+!
+{{net_mgmt_subnet | host_address:XX}} | {{country | downcase}}-{{site_code | downcase}}-trm01.ptns.pearson.com
+!
+!
+! ======
+! CONFIG
+! ======
+!
