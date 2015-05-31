@@ -91,34 +91,34 @@
 !
 !
 {% if device_id == "01" %}
-{{net_mgmt_subnet | host_address:2}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "02" %}
-{{net_mgmt_subnet | host_address:3}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "03" %}
-{{net_mgmt_subnet | host_address:4}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "04" %}
-{{net_mgmt_subnet | host_address:5}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "05" %}
-{{net_mgmt_subnet | host_address:6}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "06" %}
-{{net_mgmt_subnet | host_address:7}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "07" %}
-{{net_mgmt_subnet | host_address:8}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "08" %}
-{{net_mgmt_subnet | host_address:9}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
-{% endif %}
-{% if device_id == "09" %}
 {{net_mgmt_subnet | host_address:10}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
 {% endif %}
-{% if device_id == "10" %}
+{% if device_id == "02" %}
 {{net_mgmt_subnet | host_address:11}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "03" %}
+{{net_mgmt_subnet | host_address:12}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "04" %}
+{{net_mgmt_subnet | host_address:13}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "05" %}
+{{net_mgmt_subnet | host_address:14}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "06" %}
+{{net_mgmt_subnet | host_address:15}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "07" %}
+{{net_mgmt_subnet | host_address:16}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "08" %}
+{{net_mgmt_subnet | host_address:17}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "09" %}
+{{net_mgmt_subnet | host_address:18}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
+{% endif %}
+{% if device_id == "10" %}
+{{net_mgmt_subnet | host_address:19}} | {{country | downcase}}-{{site_code | downcase}}-swi{{device_id}}.ptns.pearson.com
 {% endif %}
 !
 !
@@ -620,52 +620,52 @@ interface Vlan1
 {% if device_id == "01"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:2}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:10}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "02"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:3}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:11}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "03"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:4}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:12}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "04"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:5}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:13}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "05"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:6}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:14}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "06"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:7}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:15}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "07"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:8}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:16}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "08"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:9}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:17}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "09"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:10}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:18}} {{net_mgmt_subnet | mask}}
 {% endif %}
 {% if device_id == "10"  %}
 interface vlan {{net_mgmt_id}}
  description NETWORK_MGMT
- ip address {{net_mgmt_subnet | host_address:11}} {{net_mgmt_subnet | mask}}
+ ip address {{net_mgmt_subnet | host_address:19}} {{net_mgmt_subnet | mask}}
 {% endif %}
 !
 !
