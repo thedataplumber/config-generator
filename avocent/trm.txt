@@ -3,7 +3,7 @@
 ! READ ME
 ! =======
 !
-Read me.
+! Upgrade the software to standard version (see STN-03001) via the GUI after the build 
 !
 ! ====
 ! IPAM
@@ -20,3 +20,128 @@ Read me.
 ! CONFIG
 ! ======
 !
+! // ENTER WIZ MODE TO CONFIGURE THE BASIC NETWORK PARAMETERS.  THIS IS *NOT* COPY PASTE
+! // FOLLOW THE SCRIPT BELOW TO INSERT THE CORRECT COMMAND LINE BY LINE
+
+*** WIZ STUFF HERE ***
+
+! // ENTER COMMAND LINE MODE BY TYPING "CLI" IF REQUIRED
+
+cd /system/security/security_profile
+batch_mode
+set idle_timeout=1200
+set rpc=no
+set port_access=apply_to_all_users
+set session=port_access_single_session_read|write
+set port_access_kill_multi_session=no
+set port_access_send_message_multi_session=no
+set port_access_power_control=no
+set port_access_data_buffer_management=no
+set bootp_enabled=no
+set security_profile=custom
+set enable_telnet_service=no
+set enable_ftp_service=no
+set enable_snmp_service=yes
+set enable_ipsec=no
+set answer_icmp_message=yes
+set ssh_version=2
+set ssh_tcp_port=22
+set ssh_allow_root_access=no
+set enable_http_session=no
+set enable_https_session=yes
+set https_ssl_version=3
+set https_minimum_cipher_suite_level=medium
+set https_port=443
+set redirect_http|https=no
+submit
+cd /system/security/fips_140
+batch_mode
+set enable_fips_140-2_module=no
+submit
+cd /system/security/dsview
+batch_mode
+set allow_appliance_to_be_managed_by_dsview.=no
+submit
+cd /system/date_and_time/date_and_time
+batch_mode
+set settings=enable_network_time_protocol
+set server=10.111.0.100
+submit
+cd /system/date_and_time/time_zone
+batch_mode
+set time_zone=predefined
+set zone=utc
+submit
+cd /system/help_and_language
+batch_mode
+set appliance_language=english
+set url=http://global.avocent.com/us/olh/acs6000/v_2.5.0/en/index.html
+submit
+cd /system/general
+batch_mode
+set enable_login_banner=yes
+set login_banner="
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  This device is private property intended for the exclusive use of
+  authorized personnel for business purposes.  Anyone using this
+  system consents to monitoring, review and recording of such
+  activity. Unauthorized use of this system may subject you to 
+  criminal prosecution and penalties.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+"
+submit
+cd /system/boot_configuration
+batch_mode
+set boot_mode=flash
+set watchdog_timer=enabled
+set console_speed=9600
+set eth0_mode=auto
+set eth1_mode=auto
+submit
+
+cd /network/settings
+batch_mode
+set hostname={{country | downcase}}-{{site_code | downcase}}-trm01
+set primary_dns=0.0.0.0
+set secondary_dns=0.0.0.0
+set domain=ptns.pearson.com
+set enable_ipv6=no
+set enable_bonding=yes
+set bonding-mii-mon=100
+set bonding-up_delay=200
+set enable_ipv4_multiple_routing_tables=no
+submit
+
+cd network/devices/eth0/
+set ipv4_method=static
+set ipv4_address={{net_mgmt_subnet | host_address:2)) ipv4_mask={{{net_mgmt_subnet | mask}}
+set ipv4_default_gateway={{net_mgmt_subnet | host_address:1})
+submit
+
+cd /network/devices/bond0
+batch_mode
+set status=enabled
+set ipv4_method=static ipv4_address={{net_mgmt_subnet | host_address:2)) ipv4_mask={{{net_mgmt_subnet | mask}}
+#set ipv4_method=ipv4_address_unconfigured
+#set ipv6_method=stateless
+#set ipv6_method=dhcpv6
+#set ipv6_method=static #ipv6_address= #ipv6_prefix_length=
+set ipv6_method=ipv6_address_unconfigured
+set mode=auto
+submit
+
+
+
+
+cd /users/authorization/groups/acsgp/login_profile
+batch_mode
+set session_timeout=use_global_settings
+set enable_log-in_profile=yes
+set profile=ts_menu
+submit
+
+commit
