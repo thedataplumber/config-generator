@@ -23,7 +23,57 @@
 ! // ENTER WIZ MODE TO CONFIGURE THE BASIC NETWORK PARAMETERS.  THIS IS *NOT* COPY PASTE
 ! // FOLLOW THE SCRIPT BELOW TO INSERT THE CORRECT COMMAND LINE BY LINE
 
-*** WIZ STUFF HERE ***
+! --:- / cli->
+!  Enter the command "wiz"
+! current ipv4 address: 192.168.160.10
+! current ipv6 address: 
+! eth0:
+! device_status (disabled,enabled) [enabled] : < ENTER >
+! ipv4_method (dhcp,ipv4_address_unconfigured,static) [dhcp] : static
+! 
+! static:
+! ipv4_address [192.168.160.10] : 10.25.183.8
+! ipv4_mask [255.255.255.0] : 255.255.255.0
+! ipv4_default_gateway : 10.25.183.1
+! ipv6_method (dhcpv6,ipv6_address_unconfigured,stateless,static) [ipv6_address_unconfigured] : < ENTER >
+! mac address: 00:e0:86:16:99:c7
+! dns:
+! primary_dns : 0.0.0.0
+! secondary_dns : 0.0.0.0
+! domain : ptns.pearson.com
+! hostname [ACS6008-0270348163] : us-iowac-trm6008-lab01
+! ipv6:
+! enable_ipv6 (no,yes) [yes] : no
+
+! current ipv4 address: 192.168.160.10
+! current ipv6 address: 
+! eth0:
+! device_status = enabled
+! ipv4_method = static
+! ipv4_address = 10.25.183.8
+! ipv4_mask = 255.255.255.0
+! ipv4_default_gateway = 10.25.183.1
+! ipv6_method = ipv6_address_unconfigured
+! ipv6_address = 
+! ipv6_prefix_length = 
+! ipv6_default_gateway = 
+! mac address: 00:e0:86:16:99:c7
+
+! dns:
+! primary_dns = 0.0.0.0
+! secondary_dns = 0.0.0.0
+! domain = ptns.pearson.com
+! hostname = us-iowac-trm6008-lab01
+
+! ipv6:
+! Note: Enabling or disabling IPv6 requires a reboot to be effective.
+! enable_ipv6 = no
+! get_dns_from_dhcpv6 = no
+! get_domain_from_dhcpv6 = no
+
+
+! Are all these parameters correct? (no, yes, quit)  [no] : yes
+! --:- / cli->
 
 ! // ENTER COMMAND LINE MODE BY TYPING "CLI" IF REQUIRED
 
