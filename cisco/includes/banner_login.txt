@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start banner_login
+! ---------------------------------------------------------------
+!
 banner login ^
 This device is private property intended for the exclusive use of
 authorized personnel for business purposes. Anyone using this
@@ -7,3 +12,8 @@ access is strictly prohibited. Unauthorized use of this system
 may subject you to criminal prosecution and penalties. 
  
 ^
+!
+! ---------------------------------------------------------------
+!				end banner_login
+! ---------------------------------------------------------------
+!

@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start netflow
+! ---------------------------------------------------------------
+!
 flow exporter PEARSON
  description Netflow exports to Pearson tracker
 {% case region %}
@@ -16,7 +21,10 @@ flow exporter PEARSON
 {% else %}
  destination 10.111.0.29
 {% endcase %}
- source Loopback0
+#
+# management_interface is defined in script_interface_allocation include
+#
+ source {{ management_interface }}
  transport udp 2055 
 !
 flow monitor INGRESS
@@ -32,3 +40,8 @@ flow monitor EGRESS
  cache timeout active 60
  cache entries 200000
  record netflow ipv4 original-output
+!
+! ---------------------------------------------------------------
+!				end netflow
+! ---------------------------------------------------------------
+!

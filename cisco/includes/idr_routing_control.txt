@@ -1,0 +1,91 @@
+!
+! ---------------------------------------------------------------
+!				start idr_routing_control
+! ---------------------------------------------------------------
+!
+#
+# // IDR01 / DMVPN3 configuration
+#
+{% if dmvpn3 %}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ management_summary | cidr }}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ infrastructure_summary | cidr }}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ site_summary | cidr }}
+!
+ip prefix-list PL_LEAK_LOOPBACK permit {{ loopback_ip }}/32
+!
+! ENSURE PL_LEAK_LOOPBACK route-map IS APPLIED TO NETWORK MANAGEMENT SUMMARY
+!
+route-map RM_LEAK_LOOPBACK permit 10
+ match ip address prefix-list PL_LEAK_LOOPBACK
+!
+route-map RM_E3_TO_E1 deny 10
+  match tag {{ tunnel_3_ip | route_tag }}
+!
+route-map RM_E3_TO_E1 deny 15
+  match ip address prefix-list PL_BLOCK_SUM_REDIST
+!
+route-map RM_E1_TO_E3 permit 20
+  set tag 31
+!
+route-map RM_E1_TO_E3 deny 10
+{% if mpls_inet %}
+  match tag 31 41 {{ bgp_asn }}
+{% endif %}
+{% unless mpls_inet %}
+  match tag 31 41
+{% endunless %}
+!
+route-map RM_E1_TO_E3 permit 20
+  set tag {{ tunnel_3_ip | route_tag }}
+! 
+{% if mpls_inet %}
+route-map RM_BGP_TO_E1 permit 10
+set tag {{ bgp_asn }}
+{% endif %}
+{% endif %}
+!
+#
+# // IDR02 / DMVPN4 configuration
+#
+{% if dmvpn4 %}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ management_summary | cidr }}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ infrastructure_summary | cidr }}
+ip prefix-list PL_BLOCK_SUM_REDIST permit {{ site_summary | cidr }}
+!
+ip prefix-list PL_LEAK_LOOPBACK permit {{ loopback_subnet | host_address:2 }}/32
+!
+! ENSURE PL_LEAK_LOOPBACK route-map IS APPLIED TO NETWORK MANAGEMENT SUMMARY
+!
+route-map RM_LEAK_LOOPBACK permit 10
+ match ip address prefix-list PL_LEAK_LOOPBACK
+!
+route-map RM_E4_TO_E1 deny 10
+  match tag {{ tunnel_4_ip | route_tag }}
+!
+route-map RM_E4_TO_E1 deny 15
+  match ip address prefix-list PL_BLOCK_SUM_REDIST
+!
+route-map RM_E4_TO_E1 permit 20
+  set tag 41
+!
+route-map RM_E1_TO_E4 deny 10
+{% if mpls_inet %}
+  match tag 31 41 {{ bgp_asn }}
+{% endif %}
+{% unless mpls_inet %}
+  match tag 31 41
+{% endunless %}
+!
+route-map RM_E1_TO_E4 permit 20
+  set tag {{ tunnel_4_ip | route_tag }}
+! 
+{% if mpls_inet %}
+route-map RM_BGP_TO_E1 permit 10
+set tag {{ bgp_asn }}
+{% endif %}
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_routing_control
+! ---------------------------------------------------------------
+!

@@ -1,20 +1,15 @@
 !
 ! ---------------------------------------------------------------
-!				start banner_incoming
+!				start acl_98_99
 ! ---------------------------------------------------------------
 !
-banner incoming ^
-
-Template:	{{ template_name }}
-Version:	{{ template_version }}
-Platform:	{{ template_platform }}
-Date:		{{ generated_at }}
-Engineer:	{{ generated_by }}
-URL:		{{ generated_configuration_url }}
-
-^
+access-list 98 remark LoginAccess
+access-list 98 permit 10.111.0.0 0.0.255.255
+!
+access-list 99 remark SNMPManager
+access-list 99 permit 10.111.0.0 0.0.255.255
 !
 ! ---------------------------------------------------------------
-!				end banner_incoming
+!				end acl_98_99
 ! ---------------------------------------------------------------
 !

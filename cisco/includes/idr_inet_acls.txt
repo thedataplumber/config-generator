@@ -1,0 +1,35 @@
+!
+! ---------------------------------------------------------------
+!				start idr_inet_acls
+! ---------------------------------------------------------------
+!
+{% if user_browse %}
+ip access-list extended IPSEC_IA
+  permit esp any any
+  permit udp any eq isakmp any eq isakmp
+  permit icmp any any echo
+  permit icmp any any echo-reply
+  permit icmp any any time-exceeded
+  permit icmp any any unreachable
+  permit tcp any any established
+  deny udp any host {{ inet_ip | address }} eq ntp
+  deny udp any any eq snmp
+  permit udp any any
+  permit tcp any gt 1024 any gt 1024
+!
+{% endif %}
+{% unless user_browse %}
+ip access-list extended IPSEC
+  permit esp any any
+  permit udp any eq isakmp any eq isakmp
+  permit icmp any any echo
+  permit icmp any any echo-reply
+  permit icmp any any time-exceeded
+  permit icmp any any unreachable
+  !
+{% endunless %}
+!
+! ---------------------------------------------------------------
+!				end idr_inet_acls
+! ---------------------------------------------------------------
+!

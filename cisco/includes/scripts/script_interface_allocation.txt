@@ -1,0 +1,47 @@
+{% case template_platform %}
+
+{% when 'cisco_2921' %}
+{% assign wan_interface = "Gi0/0" %}
+{% assign infrastructure_interface_1 = "Gi0/1" %}
+{% assign infrastructure_interface_2 = "Gi0/2" %}
+{% assign inet_interface = "Gi0/0/0" %}
+{% assign management_interface = "Loopback0" %}
+{% assign ipam_wan_interface = "ge0-0" %}
+{% assign ipam_infrastructure_interface_1 = "ge0-1" %}
+{% assign ipam_infrastructure_interface_2 = "ge0-2" %}
+{% assign ipam_inet_interface = "ge0-0-0" %}
+
+{% when 'cisco_3925' %}
+{% assign wan_interface = "Gi0/0" %}
+{% assign infrastructure_interface_1 = "Gi0/1" %}
+{% assign infrastructure_interface_2 = "Gi0/2" %}
+{% assign inet_interface = "Gi0/3" %}
+{% assign management_interface = "Loopback0" %}
+{% assign ipam_wan_interface = "ge0-0" %}
+{% assign ipam_infrastructure_interface_1 = "ge0-1" %}
+{% assign ipam_infrastructure_interface_2 = "ge0-2" %}
+{% assign ipam_inet_interface = "ge0-3" %}
+
+{% when 'cisco_asr_1001-x' %}
+{% assign wan_interface = "Gi0/0/0" %}
+{% assign infrastructure_interface_1 = "Gi0/0/1" %}
+{% assign infrastructure_interface_2 = "Gi0/0/2" %}
+{% assign inet_interface = "Gi0/0/3" %}
+{% assign management_interface = "Loopback0" %}
+{% assign ipam_wan_interface = "ge0-0-0" %}
+{% assign ipam_infrastructure_interface_1 = "ge0-0-1" %}
+{% assign ipam_infrastructure_interface_2 = "ge0-0-2" %}
+{% assign ipam_inet_interface = "ge0-0-3" %}
+
+{% else %}
+{% assign wan_interface = "Gi0/0" %}
+{% assign infrastructure_interface_1 = "Gi0/1" %}
+{% assign infrastructure_interface_2 = "Gi0/2" %}
+{% assign inet_interface = "Gi0/3" %}
+{% assign management_interface = "Loopback0" %}
+{% assign ipam_wan_interface = "ge0-0" %}
+{% assign ipam_infrastructure_interface_1 = "ge0-1" %}
+{% assign ipam_infrastructure_interface_2 = "ge0-2" %}
+{% assign ipam_inet_interface = "ge0-3" %}
+
+{% endcase %}

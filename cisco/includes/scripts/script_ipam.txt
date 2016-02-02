@@ -1,0 +1,45 @@
+#
+# // IDR01 / DMVPN3 configuration
+#
+! The following IPs have been pre-assigned in this configuration.  
+! The pipe "|" separated information below can be used to import into excel, and assigned A and reverse DNS records to https://ipam.pearson.com/ui/ as required
+!
+!
+IP Address | Hostname
+{% if dmvpn3 %}
+{{ loopback_ip }} | {{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{{ tunnel_3_ip }} | tu3.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{% unless mpls_inet %}
+{{ inet_ip | address }} | {{ ipam_wan_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{% endunless %}
+{% if mpls_inet %}
+{{ inet_ip | address }} | {{ ipam_wan_interface }}-{{ inet_vlan_id }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{{ mpls_ip | address }} | {{ ipam_wan_interface }}-{{ mpls_vlan_id }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{% endif %}
+{{ infrastructure_ip_1 }} | {{ ipam_infrastructure_interface_1 }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{{ infrastructure_ip_2 }} | {{ ipam_infrastructure_interface_2 }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{{ inet_pop_ip | address }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-idr01.ptns.pearson.com
+{{ inet_pop_vip_1 }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-v01.ptns.pearson.com
+{{ inet_pop_vip_2 }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-v02.ptns.pearson.com
+{% endif %}
+#
+# // IDR02 / DMVPN4 configuration
+#
+{% if dmvpn4 %}
+{% unless dmvpn3 and dmvpn4 %}
+{{ loopback_ip }} | {{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{{ tunnel_4_ip }} | tu4.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{% unless mpls_inet %}
+{{ inet_ip | address }} | {{ ipam_wan_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{% endunless %}
+{% if mpls_inet %}
+{{ inet_ip | address }} | {{ ipam_wan_interface }}-{{ inet_vlan_id }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{{ mpls_ip | address }} | {{ ipam_wan_interface }}-{{ mpls_vlan_id }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{% endif %}
+{{ infrastructure_ip_1 }} | {{ ipam_infrastructure_interface_1 }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{{ infrastructure_ip_2 }} | {{ ipam_infrastructure_interface_2 }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{{ inet_pop_ip | address }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-idr02.ptns.pearson.com
+{{ inet_pop_vip_1 }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-v01.ptns.pearson.com
+{{ inet_pop_vip_2 }} | {{ ipam_inet_interface }}.{{ country | downcase }}-{{ site_code | downcase }}-v02.ptns.pearson.com
+{% endunless %}
+{% endif %}

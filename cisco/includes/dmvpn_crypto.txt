@@ -1,0 +1,28 @@
+!
+! ---------------------------------------------------------------
+!				start dmvpn_crypto
+! ---------------------------------------------------------------
+!
+crypto keyring DMVPN vrf inet
+  pre-shared-key address 0.0.0.0 0.0.0.0 key {{ credentials.dmvpn_psk }}
+!        
+crypto isakmp policy 20
+  encr aes 256
+  authentication pre-share
+  group 14
+crypto isakmp keepalive 10
+crypto isakmp invalid-spi-recovery
+crypto isakmp profile DMVPN
+   keyring DMVPN
+   match identity address 0.0.0.0 inet
+!
+crypto ipsec transform-set PEARSON-AES256 esp-aes 256 esp-sha-hmac
+!
+crypto ipsec profile DMVPN
+  set transform-set PEARSON-AES256
+  set pfs group2
+!
+! ---------------------------------------------------------------
+!				end dmvpn_crypto
+! ---------------------------------------------------------------
+!

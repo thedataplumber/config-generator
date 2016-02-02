@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start vss
+! ---------------------------------------------------------------
+!
 ! //Configure Switch 1
 !
 !
@@ -18,14 +23,14 @@ interface Port-channel63
  no shutdown
 !
 interface TenGigabitEthernet1/31
- description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/1/31
+ description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 2/1/31
  switchport mode trunk
  switchport nonegotiate
  channel-group 63 mode on
  no shutdown
 !
 interface TenGigabitEthernet1/32
- description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 2/1/32
+ description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 2/1/32
  switchport mode trunk
  switchport nonegotiate
  channel-group 63 mode on
@@ -52,14 +57,14 @@ interface Port-channel64
  no shutdown
 !
 interface TenGigabitEthernet1/31
- description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/1/31
+ description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 1/1/31
  switchport mode trunk
  switchport nonegotiate
  channel-group 64 mode on
  no shutdown
 !
 interface TenGigabitEthernet1/32
- description [F] {{country | downcase}}-{{site_code | downcase}}-swc01 1/1/32
+ description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 1/1/32
  switchport mode trunk
  switchport nonegotiate
  channel-group 64 mode on
@@ -81,3 +86,8 @@ dual-active detection pagp trust channel-group 1
 ! // The standby chassis must be in hot standby state for the switch accept mode virtual command to execute successfully
 !
 switch accept mode virtual
+!
+! ---------------------------------------------------------------
+!				end vss
+! ---------------------------------------------------------------
+!

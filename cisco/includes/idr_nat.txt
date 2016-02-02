@@ -1,0 +1,29 @@
+!
+! ---------------------------------------------------------------
+!				start idr_nat
+! ---------------------------------------------------------------
+!
+{% if user_browse %}
+ip nat translation port-timeout udp 5246 60
+ip nat translation port-timeout udp 5247 60
+ip nat translation tcp-timeout 10800
+{% if mpls_inet %}
+#
+# wan_interface is defined in script_interface_allocation include
+#
+ip nat inside source list NAT interface {{ wan_interface }}.{{ inet_vlan_id }} vrf inet overload
+{% endif %}
+{% unless mpls_inet %}
+ip nat inside source list NAT interface {{ wan_interface }} vrf inet overload
+{% endunless %}
+!
+ip access-list extended NAT
+ permit ip 10.0.0.0 0.255.255.255 any
+ permit ip 172.16.0.0 0.15.255.255 any
+ permit ip 192.168.0.0 0.0.255.255 any
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_nat
+! ---------------------------------------------------------------
+!

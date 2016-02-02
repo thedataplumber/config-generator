@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start logging
+! ---------------------------------------------------------------
+!
 {% case region %}
 {% when 'APAC' %}
 ! MLBDC, AU, APAC
@@ -26,4 +31,12 @@ logging 10.111.0.5
 logging 10.111.55.5
 {% endcase %}
 !
-logging source-interface Loopback0
+#
+# management_interface is defined in script_interface_allocation include
+#
+logging source-interface {{ management_interface }}
+!
+! ---------------------------------------------------------------
+!				end logging
+! ---------------------------------------------------------------
+!

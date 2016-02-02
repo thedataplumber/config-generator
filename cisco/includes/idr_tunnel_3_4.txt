@@ -1,0 +1,122 @@
+!
+! ---------------------------------------------------------------
+!				start idr_tunnel_3_4
+! ---------------------------------------------------------------
+!
+{% if dmvpn3 %}
+interface Tunnel3
+{% if inet_burst_mbps != "" %}
+  description [F] DMVPN 3 {{ inet_cir_mbps | mbps_bps | short_bandwidth }}/{{ inet_burst_mbps | mbps_bps | short_bandwidth }}
+{% endif %}
+{% if inet_burst_mbps == "" %}
+  description [F] DMVPN 3 {{ inet_cir_mbps | mbps_bps | short_bandwidth }}
+{% endif %}
+  bandwidth {{ inet_cir_mbps | mbps_kbps }} 
+  ip address {{ tunnel_3_ip }} 255.255.252.0
+  ip flow monitor INGRESS input
+  no ip redirects
+  ip mtu 1400
+  ip authentication mode eigrp 3 md5
+  ip authentication key-chain eigrp 3 EIGRP
+  ip nhrp authentication {{ credentials.nhrp_auth }}
+{% unless region == "EMEA" %}
+  ip nhrp nhs 172.28.12.3
+  ip nhrp map 172.28.12.3 159.182.38.28
+  ip nhrp map multicast 159.182.38.28
+  ip nhrp nhs 172.28.12.1
+  ip nhrp map 172.28.12.1 192.251.134.19
+  ip nhrp map multicast 192.251.134.19
+  ip nhrp nhs 172.28.12.11 
+  ip nhrp map 172.28.12.11 159.182.67.16
+  ip nhrp map multicast 159.182.67.16
+{% endunless %}
+{% if region == "EMEA" %}
+  ip nhrp nhs 172.28.12.5
+  ip nhrp map 172.28.12.5 159.182.79.15
+  ip nhrp map multicast 159.182.79.15
+{% endif %}
+  ip nhrp network-id 1003
+  ip nhrp holdtime 300
+  ip nhrp shortcut
+  if-state nhrp
+  ip summary-address eigrp 3 {{ management_summary | address }} {{ management_summary | mask }} leak-map LEAK_LOOPBACK 
+  ip summary-address eigrp 3 {{ infrastructure_summary | address }} {{ infrastructure_summary | mask }}
+  ip summary-address eigrp 3 {{ site_summary | address }} {{ site_summary | mask }}
+  ip tcp adjust-mss 1360
+{% if mpls_inet %}
+  tunnel source GigabitEthernet0/0.{{ inet_vlan_id }}
+{% endif %}
+{% unless mpls_inet %}
+  tunnel source GigabitEthernet0/0
+{% endunless %}
+  tunnel mode gre multipoint
+  tunnel key 1003
+  tunnel vrf inet
+{% if dmvpn3 and dmvpn4 %}
+  tunnel protection ipsec profile DMVPN shared
+{% endif %}
+{% unless dmvpn3 and dmvpn4 %}
+  tunnel protection ipsec profile DMVPN
+{% endunless %}
+  cdp enable
+  qos pre-classify
+{% endif %}
+!
+{% if dmvpn4 %}
+interface Tunnel4
+{% if inet_burst_mbps != "" %}
+  description [F] DMVPN 4 {{ inet_cir_mbps | mbps_bps | short_bandwidth }}/{{ inet_burst_mbps | mbps_bps | short_bandwidth }}
+{% endif %}
+{% if inet_burst_mbps == "" %}
+  description [F] DMVPN 4 {{ inet_cir_mbps | mbps_bps | short_bandwidth }}
+{% endif %}
+  bandwidth {{ inet_cir_mbps | mbps_kbps }}
+  ip address {{ tunnel_4_ip }} 255.255.252.0
+  ip flow monitor INGRESS input
+  no ip redirects
+  ip mtu 1400
+  ip authentication mode eigrp 4 md5
+  ip authentication key-chain eigrp 4 EIGRP
+  ip nhrp authentication {{ credentials.nhrp_auth }}
+{% unless region == "EMEA" %}
+  ip nhrp nhs 172.28.16.3
+  ip nhrp map 172.28.16.3 159.182.38.29
+  ip nhrp map multicast 159.182.38.29
+  ip nhrp nhs 172.28.16.1
+  ip nhrp map 172.28.16.1 192.251.134.20
+  ip nhrp map multicast 192.251.134.20
+  ip nhrp nhs 172.28.16.11
+  ip nhrp map 172.28.16.11 159.182.67.17
+  ip nhrp map multicast 159.182.67.17
+{% endunless %}
+{% if region == "EMEA" %}
+  ip nhrp nhs 172.28.16.5
+  ip nhrp map multicast 159.182.127.15
+  ip nhrp map 172.28.16.5 159.182.127.15
+{% endif %}
+  ip nhrp network-id 1004
+  ip nhrp holdtime 300
+  ip nhrp shortcut
+  if-state nhrp
+  ip summary-address eigrp 4 {{ management_summary | address }} {{ management_summary | mask }} leak-map LEAK_LOOPBACK 
+  ip summary-address eigrp 4 {{ infrastructure_summary | address }} {{ infrastructure_summary | mask }}
+  ip summary-address eigrp 4 {{ site_summary | address }} {{ site_summary | mask }}
+  ip tcp adjust-mss 1360
+{% if mpls_inet %}
+  tunnel source GigabitEthernet0/0.{{ inet_vlan_id }}
+{% endif %}
+{% unless mpls_inet %}
+  tunnel source GigabitEthernet0/0
+{% endunless %}
+  tunnel mode gre multipoint
+  tunnel key 1004
+  tunnel vrf inet
+  tunnel protection ipsec profile DMVPN shared
+  cdp enable
+  qos pre-classify
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_tunnel_3_4
+! ---------------------------------------------------------------
+!

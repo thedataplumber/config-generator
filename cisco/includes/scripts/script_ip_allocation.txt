@@ -1,0 +1,10 @@
+{% assign fw_pop_subnet = site_summary | subnet:28,1 %}
+{% assign wireless_pop_subnet = site_summary | subnet:26,3 %}
+{% assign loopback_subnet = management_summary | subnet:28,1 %}
+{% assign net_mgmt_subnet = management_summary | subnet:28,2 %}
+{% assign server_subnet_1 = management_summary | subnet:24,2 %}
+{% assign wired_user_subnet_1 = site_summary | subnet:24,3 %}
+{% assign voice_subnet_1 = voice_summary %}
+{% assign video_subnet_1 = video_summary %}
+{% assign trusted_wireless_subnet_1 = site_summary | subnet:24,4 %}
+{% assign inet_pop_subnet = site_summary | subnet:28,2 %}

@@ -1,20 +1,13 @@
 !
 ! ---------------------------------------------------------------
-!				start banner_incoming
+!				start eigrp_auth
 ! ---------------------------------------------------------------
 !
-banner incoming ^
-
-Template:	{{ template_name }}
-Version:	{{ template_version }}
-Platform:	{{ template_platform }}
-Date:		{{ generated_at }}
-Engineer:	{{ generated_by }}
-URL:		{{ generated_configuration_url }}
-
-^
+key chain EIGRP
+  key 1
+   key-string p3ar5on3_4
 !
 ! ---------------------------------------------------------------
-!				end banner_incoming
+!				end eigrp_auth
 ! ---------------------------------------------------------------
 !

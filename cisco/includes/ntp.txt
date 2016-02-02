@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start ntp
+! ---------------------------------------------------------------
+!
 {% case region %}       
 {% when 'APAC' %}
 ! APAC NTP List
@@ -25,9 +30,12 @@ ntp server 10.50.0.100
 ntp server 10.111.0.100
 ntp server 10.102.1.100
 {% endcase %}
-{% case template_platform %}
-{% when "cisco_2921" or "cisco_3925e" or "cisco_asr_1001-x" or "cisco_3750-x" or "cisco_4500-x" or "all_routers" or "" %}
-ntp source loopback0
-{% when "cisco_2960-x" or "cisco_4500e" %}
-ntp source vlan103
-{% endcase %}
+#
+# management_interface is defined in script_interface_allocation include
+#
+ntp source {{ management_interface }}
+!
+! ---------------------------------------------------------------
+!				end ntp
+! ---------------------------------------------------------------
+!

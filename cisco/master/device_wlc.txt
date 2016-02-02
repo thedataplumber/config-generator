@@ -1,0 +1,256 @@
+Would you like to terminate autoinstall? [yes]: yes
+System Name [Cisco_XX:XX:XX] (31 characters max): <hostname>
+Enter Administrative User Name (24 characters max): netadmin
+Enter Administrative Password (3 to 24 characters): <localAccount>
+Re-enter Administrative Password                 : <localAccount>
+Enable Link Aggregation (LAG) [yes][NO]: yes
+Management Interface IP Address: <management_ip_address>
+Management Interface Netmask: <management_subnet_mask>
+Management Interface Default Router: <management_gateway_ip_address>
+Management Interface VLAN Identifier (0 = untagged): 102
+Management Interface DHCP Server IP Address: <management_gateway_ip_address>
+Virtual Gateway IP Address: 1.1.1.1
+Multicast IP Address: 239.100.100.x (where x is WLC number (1 or 2))
+Mobility/RF Group Name: <SITEC>
+Network Name (SSID): epic
+Configure DHCP Bridging Mode [yes][NO]: no
+Allow Static IP Addresses [YES][no]: no
+Configure a RADIUS Server now? [YES][no]: no
+Enter Country Code list (enter 'help' for a list of countries) [US]: <country_code>
+Enable 802.11b Network [YES][no]: no
+Enable 802.11a Network [YES][no]: no
+Enable Auto-RF [YES][no]: yes
+Configure a NTP server now? [YES][no]: no
+Configure the system time now? [YES][no]: no
+Configuration correct? If yes, system will save it and reset. [yes][NO]: yes
+Configuration saved!
+Resetting system with new configuration...
+The system will then reset and boot back up with the new configuration. Log in with the new administrative user account. You should get to the following prompt:
+(Cisco Controller) >
+If so then you can continue with the base configuration.
+
+
+
+Base Configuration
+config paging disable
+config prompt <hostname>
+config wlan delete 1
+# Disable ports 3 and 4 if they are not intended to be used
+config port adminmode 3 disable
+config port adminmode 4 disable
+# Disable DHCP proxy globally
+config dhcp proxy disable
+# Two TACACS+ servers for management user authentication
+config tacacs auth add 1 <server_1_ip_address> 49 ascii <tacacsKey>
+config tacacs acct add 1 <server_1_ip_address> 49 ascii <tacacsKey>
+config tacacs athr add 1 <server_1_ip_address> 49 ascii <tacacsKey>
+config tacacs auth add 2 <server_2_ip_address> 49 ascii <tacacsKey>
+config tacacs acct add 2 <server_2_ip_address> 49 ascii <tacacsKey>
+config tacacs athr add 2 <server_2_ip_address> 49 ascii <tacacsKey>
+config aaa auth mgmt tacacs local 
+Where TACACS+ server IP addresses are…
+EMEA: 1) 10.111.128.52 and 2) 10.111.129.50
+APAC: 1) 10.111.160.11 and 2) 10.111.164.10
+AMER: 1) 10.102.0.17 and 2) 10.25.252.21
+# Configure SYSLOG settings
+config logging syslog host <server_1_ip_address>
+config logging syslog host <server_2_ip_address> (still pending confirmation)
+Where SYSLOG server IP addresses are…
+EMEA: 1) 10.111.128.5 and 2) 10.111.129.5
+APAC: 1) 10.111.160.5 and 2) 10.111.164.5
+AMER: 1) 10.111.0.5 and 2) 10.111.55.5
+CHINA: 1) 10.111.165.5 and 2) 10.111.166.5 
+# Configure SNMP settings
+config snmp version v3 disable
+config snmp syslocation <SITEC>
+config snmp v3user delete default
+config snmp community delete public
+config snmp community delete private
+config snmp community create <snmpRO>
+config snmp community mode enable <snmpRO>
+config snmp community create <snmpRW>
+config snmp community accessmode rw <snmpRW>
+config snmp community mode enable <snmpRW>
+config snmp trapreceiver create <server_1_ip_address> <server_1_ip_address>
+Where SNMP server IP addresses are…
+EMEA: 1) 10.111.128.5
+APAC: 1) 10.111.160.5
+AMER: 1) 10.111.0.5
+# Enable fast SSID change
+config network fast-ssid-change enable
+# Configure NTP settings
+config time ntp interval 3600
+config time ntp server 1 <ntp_server_1_ip_address>
+config time ntp server 2 <ntp_server_2_ip_address>
+# Configure redundancy (on WLC02 only)
+config redundancy unit secondary 
+# Configure 802.11a radio
+config 802.11a rate supported 6
+config 802.11a rate supported 24
+config 802.11a txPower global max 17
+config 802.11a txPower global min 8
+config advanced 802.11a channel dca chan-width-11n 40
+config advanced 802.11a channel cleanair-event enable
+config advanced 802.11a tpcv1-thresh -67 
+config 802.11a enable network
+config 802.11a cleanair enable network
+
+# Configure 802.11b radio
+config 802.11b 11gSupport enable
+y
+config 802.11b rate mandatory 12
+config 802.11b rate disabled 1
+config 802.11b rate disabled 2
+config 802.11b rate disabled 5.5
+config 802.11b rate disabled 11
+config 802.11b rate disabled 6
+config 802.11b txPower global max 17
+config 802.11b txPower global min 8
+config advanced 802.11b channel cleanair-event enable
+config advanced 802.11b tpcv1-thresh -67
+config 802.11b enable network
+config 802.11b cleanair enable network
+
+# Configure rouge rules
+config rogue rule add ap priority 1 classify malicious notify global state alert malicious_ap
+config rogue rule condition ap set managed-ssid malicious_ap
+config rogue rule match all malicious_ap
+config rogue rule enable malicious_ap
+config rogue rule add ap priority 2 classify friendly notify global state alert friendly_ap
+config rogue rule condition ap set rssi -128 friendly_ap
+config rogue rule match all friendly_ap
+config rogue rule enable friendly_ap
+# Configure mobility members
+# On primary controller (WLC01)
+config mobility group member add <wlc02_mac_address> <wlc02_IP_address> <SITEC>
+# On secondary controller (WLC02)
+config mobility group member add <wlc01_mac_address> <wlc01_IP_address> <SITEC>
+# Save the configuration
+save config
+Access Points
+# Find out all the APs currently connected to the WLC
+show ap summary
+# For each AP, configure host name, IP address, primary WLC and secondary WLC
+config ap name <ap_hostname> <current_ap_name>
+config ap static-IP enable <ap_hostname> <ap_ip_address> <subnet_mask> <gateway_ip_address>
+y
+config ap primary-base <wlc01_hostname> <ap_hostname> <wlc01_ip_address>
+config ap secondary-base <wlc02_hostname> <ap_hostname> <wlc02_ip_address>
+# Save the configuration
+save config
+epic WLAN
+# Create dynamic interface(s) and interface group for epic WLAN
+config interface group create wireless_subnet "Subnet group for wireless"
+config interface create <interface_name> <vlan_id>
+config interface address dynamic-interface <interface_name> <wlc ip address> <subnet_mask> <gateway_ip_address>
+config interface dhcp dynamic-interface <interface_name> proxy-mode global
+config interface group interface add wireless_subnet <interface_name> 
+Where:
+<interface_name> follows the format "user_x.x.x.x/xx"
+<wlc_ip_address> is the .5 for WLC 1 and .6 for WLC 2
+<vlan_id> is 500 (and then 501,502… if more are required)
+# Two RADIUS servers for epic WLAN AAA
+config radius auth add 1 <server_1_ip_address> 1812 ascii <tacacsKey>
+config radius auth management 1 disable
+config radius acct add 1 <server_1_ip_address> 1813 ascii <tacacsKey>
+config radius auth add 2 <server_2_ip_address> 1812 ascii <tacacsKey>
+config radius auth management 2 disable
+config radius acct add 2 <server_2_ip_address> 1813 ascii <tacacsKey> 
+Where RADIUS server IP addresses are…
+EMEA: 1) 10.111.128.52 and 2) 10.111.129.50
+APAC: 1) 10.111.160.11 and 2) 10.111.164.10
+AMER: 1) 10.102.0.17 and 2) 10.25.252.21
+# Create epic WLAN
+config wlan create 1 epic epic
+config wlan interface 1 wireless_subnet
+config wlan radius_server auth add 1 1
+config wlan radius_server acct add 1 1
+config wlan radius_server auth add 1 2
+config wlan radius_server acct add 1 2
+config wlan session-timeout 1 0
+config wlan dhcp_server 1 0.0.0.0 required
+config wlan mfp client disable 1
+config wlan exclusionlist 1 disabled
+config wlan ccx aironetIeSupport disable 1
+config wlan qos 1 platinum
+config wlan enable 1 
+# Save the configuration
+save config
+Guest@Pearson WLAN (All regions except US)
+# Create the interface required for Guest@Pearson WLAN
+config interface create user_192.168.0.0/23 550
+config interface address dynamic-interface user_192.168.0.0/23 192.168.0.5 255.255.254.0 192.168.0.1
+config interface dhcp dynamic-interface user_192.168.0.0/23 primary <wlc_mgmt_ip_address>
+config interface dhcp dynamic-interface user_192.168.0.0/23 proxy-mode enable 
+# Create RADIUS servers required for guest@pearson WLAN
+config radius auth add 3 10.161.21.30 1812 ascii <tacacsKey>
+config radius auth management 3 disable
+config radius acct add 3 10.161.21.30 1813 ascii <tacacsKey>
+# Create the DHCP scope required for new guest wireless
+config dhcp create-scope GUEST_WLAN
+config dhcp network GUEST_WLAN 192.168.0.0 255.255.254.0
+config dhcp default-router GUEST_WLAN 192.168.0.1
+config dhcp dns-servers GUEST_WLAN 8.8.8.8 8.8.4.4
+config dhcp address-pool GUEST_WLAN 192.168.0.20 192.168.1.250
+config dhcp enable GUEST_WLAN
+# Create pre-auth ACL for guest@pearson WLAN
+config acl create pre-auth
+config acl rule add pre-auth 1
+config acl rule action pre-auth 1 permit
+config acl rule destination address pre-auth 1 10.161.21.30 255.255.255.255
+config acl rule destination port range pre-auth 1 443 443
+config acl rule source address pre-auth 1 0.0.0.0 0.0.0.0
+config acl rule source port range pre-auth 1 0 65535
+config acl rule direction pre-auth 1 In
+config acl rule dscp pre-auth 1 Any
+config acl rule protocol pre-auth 1 6
+config acl rule add pre-auth 2
+config acl rule action pre-auth 2 permit
+config acl rule destination address pre-auth 2 0.0.0.0 0.0.0.0
+config acl rule destination port range pre-auth 2 0 65535
+config acl rule source address pre-auth 2 10.161.21.30 255.255.255.255
+config acl rule source port range pre-auth 2 443 443
+config acl rule direction pre-auth 2 Out
+config acl rule dscp pre-auth 2 Any
+config acl rule protocol pre-auth 2 6
+config acl apply pre-auth
+# Create guest@pearson WLAN
+config wlan create 11 Guest@Pearson Guest@Pearson
+config wlan interface 11 user_192.168.0.0/23
+config wlan ccx aironetIeSupport disable 11
+config wlan security web-auth enable 11
+config wlan security wpa disable 11
+config wlan security web-auth acl 11 pre-auth
+config wlan security web-auth server-precedence 11 radius
+config wlan radius_server auth add 11 3
+config wlan radius_server acct add 11 3
+config wlan mfp client disable 11
+config wlan session-timeout 11 0
+config wlan dhcp_server 11 0.0.0.0 required
+config wlan exclusionlist 11 disabled
+config wlan custom-web global disable 11
+config wlan custom-web ext-webauth-url https://asiapac01.guestwireless.pearson.com/portal/<wlc_mgmt_ip_address> 11
+config wlan custom-web webauth-type external 11
+config wlan enable 11 
+# Save the configuration
+save config
+Guest@Pearson WLAN (US)
+# Add mobility entries
+config mobility group member add 30:e4:db:1b:c1:40 10.102.84.15 ot-pguest
+config mobility group member add 44:d3:ca:b7:06:20 10.25.112.15 ic-pguest
+# Add the mobility entry for this controller to each of the guest WLAN anchor controllers (us-oldt1-wlc5508-guest02 and us-iowac-wlc5508-guest02)
+config mobility group member add <wlc_mac_address> <wlc_IP_address> <SITEC>
+# Create guest@pearson WLAN
+config wlan create 11 Guest@Pearson Guest@Pearson
+config wlan ccx aironetIeSupport disable 11
+config wlan security web-auth enable 11
+config wlan security wpa disable 11
+config wlan mfp client disable 11
+config wlan session-timeout 11 0
+config wlan dhcp_server 11 0.0.0.0 required
+config wlan exclusionlist 11 disabled
+config wlan mobility anchor add 11 10.102.84.15
+config wlan mobility anchor add 11 10.25.112.15
+config wlan enable 11
+# Save the configuration
+save config

@@ -1,3 +1,8 @@
+!
+! ---------------------------------------------------------------
+!				start alias
+! ---------------------------------------------------------------
+!
 alias exec ct config t
 alias exec sir show ip route | e - 
 alias exec sib show ip int brief
@@ -17,3 +22,8 @@ alias exec r show run | beg router
 alias exec acl show ip access-list
 alias exec sid show interface description
 alias exec sidi show interface description | include
+!
+! ---------------------------------------------------------------
+!				end alias
+! ---------------------------------------------------------------
+!

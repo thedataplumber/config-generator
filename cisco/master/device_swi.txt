@@ -1,0 +1,23 @@
+# // Add any script includes here
+
+%% script_interface_allocation %%
+
+! =======
+! READ ME
+! =======
+!
+! The generator makes simple assumptions based on variable entries, please thoroughly check: 
+!  - interface descriptions 
+!  - hostname
+!  - management IP address and interface
+!
+! ===============================================================
+! 					IPAM
+! ===============================================================
+!
+%% script_ipam %%
+!
+! ===============================================================
+! 					CONFIG
+! ===============================================================
+# // The following is simply a list of includes required to configure the device

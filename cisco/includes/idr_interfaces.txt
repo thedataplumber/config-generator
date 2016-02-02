@@ -1,0 +1,125 @@
+!
+! ---------------------------------------------------------------
+!				start idr_interfaces
+! ---------------------------------------------------------------
+!
+#
+# <name>_interface is defined in script_interface_allocation include
+#
+interface {{ management_interface }}
+  description MGMT
+  ip address {{ loopback_ip }} 255.255.255.255
+!
+interface {{ wan_interface }}
+{% if inet_burst_mbps != "" %}
+  description [FW] {{ isp | upcase }} {{ inet_circuit_id }} {{ inet_cir_mbps | mbps_bps | short_bandwidth }}/{{ inet_burst_mbps | mbps_bps | short_bandwidth }} {% if lec_circuit_id != "" %}({{ lec | upcase }} {{ lec_circuit_id }}){% endif %}
+{% endif %}
+{% if inet_burst_mbps == "" %}
+  description [FW] {{ isp | upcase }} {{ inet_circuit_id }} {{ inet_cir_mbps | mbps_bps | short_bandwidth }} {% if lec_circuit_id != "" %}({{ lec | upcase }} {{ lec_circuit_id }}){% endif %}
+{% endif %}
+{% unless mpls_inet %}
+  ip vrf forwarding inet
+  ip address {{ inet_ip | address }} {{ inet_ip | mask }} 
+  bandwidth {{ inet_cir_mbps | mbps_kbps }}
+  service-policy output PM_QOS_INET
+{% unless user_browse %}
+  ip access-group IPSEC in
+{% endunless %}
+{% if user_browse %}
+  ip access-group IPSEC_IA in
+  ip nat outside
+{% endif %}
+{% endunless %}
+{% if isp_sfp %}
+  media-type sfp
+{% endif %}
+  no cdp enable
+  duplex {{ isp_duplex }}
+  speed {{ isp_speed }}
+!
+{% if mpls_inet %}
+interface {{ wan_interface }}.{{ mpls_vlan_id }}
+  description [FM] {{ isp | upcase }} {{ mpls_circuit_id }} {{ mpls_cir_mbps | mbps_bps | short_bandwidth }} ({{ mpls_vrf }})
+  bandwidth {{ mpls_cir_mbps | mbps_kbps }}
+  encapsulation dot1Q {{ mpls_vlan_id }}
+  ip address {{ mpls_ip | address }} {{ mpls_ip | mask }}
+  ip flow monitor INGRESS input
+!
+interface {{ wan_interface }}.{{ inet_vlan_id }}
+  description [FW] {{ isp | upcase }} {{ inet_circuit_id }} {{ inet_cir_mbps | mbps_bps | short_bandwidth }}/{{ inet_burst_mbps | mbps_bps | short_bandwidth }} ({{ lec | upcase }} {{ lec_circuit_id }})
+  bandwidth {{ inet_cir_mbps | mbps_kbps }}
+  encapsulation dot1Q {{ inet_vlan_id }}
+  ip vrf forwarding inet
+  ip address {{ inet_ip | address }} {{ inet_ip | mask }} 
+  service-policy output PM_QOS_INET
+{% unless user_browse %}
+  ip access-group IPSEC in
+{% endunless %}
+{% if user_browse %}
+  ip access-group IPSEC_IA in
+  ip nat outside
+{% endif %}
+{% endif %}
+!
+interface {{ infrastructure_interface_1 }}
+  description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 X/Y/Z
+  ip address {{ infrastructure_ip_1 }} 255.255.255.254
+  ip flow monitor INGRESS input
+!
+interface {{ infrastructure_interface_2 }}
+  description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 X/Y/Z
+  ip address {{ infrastructure_ip_2 }} 255.255.255.254
+  ip flow monitor INGRESS input
+!
+{% if user_browse %}
+{% unless dmvpn3 and dmvpn4 %}
+{% if dmvpn3 %}
+interface {{ inet_interface }}
+  description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 X/Y/Z
+  ip vrf forwarding inet
+  ip address {{ inet_pop_ip | address }} {{ inet_pop_ip | mask }}
+  ip flow monitor INGRESS input
+  ip flow monitor EGRESS output
+  standby version 2
+  standby 1 ip {{ inet_pop_vip_1 }}
+  standby 1 timers 1 3
+  standby 1 priority 90
+  standby 1 preempt delay min 90
+  standby 1 authentication {{ credentials.inet_hsrp }}
+  standby 1 track 999
+  standby 2 ip {{ inet_pop_vip_2 }}
+  standby 2 timers 1 3
+  standby 2 priority 85
+  standby 2 preempt
+  standby 2 authentication {{ credentials.inet_hsrp }}
+  ip nat inside
+{% endif %}
+!
+{% if dmvpn4 %}
+interface {{ inet_interface }}
+  description [F] {{ country | downcase }}-{{ site_code | downcase }}-swc01 X/Y/Z
+  ip vrf forwarding inet
+  ip address {{ inet_pop_ip | address }} {{ inet_pop_ip | mask }}
+  ip flow monitor INGRESS input
+  ip flow monitor EGRESS output
+  standby version 2
+  standby 1 ip {{ inet_pop_vip_1 }}
+  standby 1 timers 1 3
+  standby 1 priority 85
+  standby 1 preempt
+  standby 1 authentication {{ credentials.inet_hsrp }}
+  standby 2 ip {{ inet_pop_vip_2 }}
+  standby 2 timers 1 3
+  standby 2 priority 90
+  standby 2 preempt delay min 90
+  standby 2 track 999
+  standby 2 authentication {{ credentials.inet_hsrp }}
+  ip nat inside
+{% endif %}
+{% endunless %}
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_interfaces
+! ---------------------------------------------------------------
+!

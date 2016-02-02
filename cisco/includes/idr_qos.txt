@@ -1,0 +1,41 @@
+!
+! ---------------------------------------------------------------
+!				start idr_qos
+! ---------------------------------------------------------------
+!
+{% if voip or vc %}
+{% if voip %}
+class-map match-all CM_VOIP
+  match dscp ef
+{% endif %}
+{% if vc %}
+class-map match-all CM_VC
+  match ip dscp af41
+{% endif %}
+policy-map PM_CHILD
+{% if voip %}
+ class CM_VOIP
+  priority {{ inet_cir_mbps | mbps_kbps | divided_by:100 | times:5 }}
+{% endif %}
+{% if vc %}
+class CM_VC
+  bandwidth {{ inet_cir_mbps | mbps_kbps | divided_by:100 | times:10 }}
+{% endif %}
+{% endif %}
+
+policy-map PM_QOS_INET
+  class class-default
+{% unless inet_burst_mbps == "" %}
+   shape average {{ inet_burst_mbps | mbps_bps | divided_by:100 | times:90 }}
+{% endunless %}
+{% if inet_burst_mbps == "" %}
+   shape average {{ inet_cir_mbps | mbps_bps | divided_by:100 | times:90 }}
+{% endif %}
+{% if voip or vc %}
+  service-policy PM_CHILD
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_qos
+! ---------------------------------------------------------------
+!

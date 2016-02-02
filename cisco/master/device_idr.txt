@@ -1,0 +1,57 @@
+# // Add any script includes here
+
+%% script_interface_allocation %%
+
+! =======
+! READ ME
+! =======
+!
+! The generator makes simple assumptions based on variable entries, please thoroughly check: 
+!  - interface descriptions 
+!  - hostname
+!  - bandwidth statements
+!  - QoS shapers
+!  - QoS priority queue (5% of CIR assumed for VoIP)
+!  - QoS bandwidth (10% if CIR assumed for VC)
+!  - route-map E3_TO_E1 (e.g automation of the route-tag from the tunnel IP address)
+!  - BGP neighbor password
+! EIGRP 1 is assumed to be the internal routing ASN
+! Where non standard (RFC1918) addresses exist on the LAN, these will need to be added to NAT ACLs, site summaries etc.
+! Infrastructure IPs are based on POL-0001, with /31 subnetmasks
+! 3 summary addresses are assumed (Site, Management, Infrastructure).  Any additional summaries will need to be added manually
+! When applying TACACs (at the end of the config file) - observe warnings on application of AAA authorization parameters
+! Guest Wireless routes/ NAT are not currently supported in this template
+!
+! ===============================================================
+! 					IPAM
+! ===============================================================
+!
+%% script_ipam %%
+!
+! ===============================================================
+! 					CONFIG
+! ===============================================================
+# // The following is simply a list of includes required to configure the device
+
+%% base %%
+%% logging %%  
+%% vrf_inet %%
+%% eigrp_auth %%
+%% idr_qos %%
+%% netflow %%
+%% dmvpn_crypto %%
+%% idr_tunnel_3_4 %%
+%% ip_sla %%
+%% idr_interfaces %%
+%% idr_routing_control %%
+%% idr_routing %%
+%% ip_sla %%
+%% acl_98_99 %%
+%% idr_inet_acls %%
+%% snmp %%
+%% ntp %%
+%% alias %%
+%% banner_login %%
+%% line %%
+%% tacacs %%
+%% banner_incoming %%

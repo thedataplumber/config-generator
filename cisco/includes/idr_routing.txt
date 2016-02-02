@@ -1,0 +1,94 @@
+!
+! ---------------------------------------------------------------
+!				start idr_routing
+! ---------------------------------------------------------------
+!
+#
+# // IDR01 / DMVPN3 configuration
+#
+{% if dmvpn3 %}
+router eigrp 1
+  network {{ infrastructure_ip_1 }} 0.0.0.0
+  network {{ infrastructure_ip_2 }} 0.0.0.0
+  network {{ loopback_ip }} 0.0.0.0
+  redistribute eigrp 3 route-map RM_E3_TO_E1
+{% if mpls_inet %}
+  redistribute bgp {{ bgp_asn }} metric 1000000 1 255 1 1500 route-map RM_BGP_TO_E1
+{% endif %}
+!
+router eigrp 3
+  network {{ tunnel_3_ip }} 0.0.0.0
+  redistribute eigrp 1 route-map RM_E1_TO_E3
+!
+{% if mpls_inet %}
+ip prefix-list {{ isp | upcase }}-IN seq 5 permit 172.24.0.0/16 le 32
+!
+router bgp {{ bgp_asn }}
+  bgp router-id {{ loopback_ip }}
+  bgp log-neighbor-changes
+  network {{ bgp_subnet | address }} mask {{ bgp_subnet | mask }}
+  timers bgp 10 30
+  neighbor {{ bgp_neighbor_ip }} remote-as {{ bgp_remote_asn }}
+  neighbor {{ bgp_neighbor_ip }} description {{ isp | upcase }} MPLS
+  neighbor {{ bgp_neighbor_ip }} password {{ credentials.bgp_pass }}
+  neighbor {{ bgp_neighbor_ip }} prefix-list {{ isp | upcase }}-IN in
+{% endif %}
+!
+ip route vrf inet 10.0.0.0 255.0.0.0 {{ inet_pop_fwb_ip }}
+ip route vrf inet 172.16.0.0 255.240.0.0 {{ inet_pop_fwb_ip }}
+ip route vrf inet 192.168.0.0 255.255.0.0 {{ inet_pop_fwb_ip }}
+ip route {{ inet_pop_subnet | address }} {{ inet_pop_subnet | mask }} {{ fw_pop_fwb_ip }} name TOVLAN900
+ip route vrf inet 0.0.0.0 0.0.0.0 {{ inet_isp_ip }}
+{% unless dmvpn3 and dmvpn4 %}
+ip route 0.0.0.0 0.0.0.0 {{ fw_pop_swc_ip }} 254 name FLOATING_DEFAULT_IN_BAND_MANAGEMENT
+ip route {{ peer_loopback_ip }} 255.255.255.255 {{ fw_pop_swc_ip }} name IDR02_LOO0
+{% endunless %}
+{% endif %}
+#
+# // IDR02 / DMVPN4 configuration
+#
+{% if dmvpn4 %}
+{% unless dmvpn3 and dmvpn4 %}
+router eigrp 1
+  network {{ infrastructure_ip_1 }} 0.0.0.0
+  network {{ infrastructure_ip_2 }} 0.0.0.0
+  network {{ loopback_ip }} 0.0.0.0
+  redistribute eigrp 4 route-map RM_E4_TO_E1
+{% if mpls_inet %}
+  redistribute bgp {{ bgp_asn }} metric 1000000 1 255 1 1500 route-map RM_BGP_TO_E1
+{% endif %}
+{% endunless %}
+!
+router eigrp 4
+  network {{ tunnel_4_ip }} 0.0.0.0 
+  redistribute eigrp 1 route-map RM_E1_TO_E4
+!
+{% unless dmvpn3 and dmvpn4 %}
+{% if mpls_inet %}
+ip prefix-list {{ isp | upcase }}-IN seq 5 permit 172.24.0.0/16 le 32
+!
+router bgp {{ bgp_asn }}
+  bgp router-id {{ loopback_ip }}
+  bgp log-neighbor-changes
+  network {{ bgp_subnet | address }} mask {{ bgp_subnet | mask }}
+  timers bgp 10 30
+  neighbor {{ bgp_neighbor_ip }} remote-as {{ bgp_remote_asn }}
+  neighbor {{ bgp_neighbor_ip }} description {{ isp | upcase }} MPLS
+  neighbor {{ bgp_neighbor_ip }} password {{ credentials.bgp_pass }}
+  neighbor {{ bgp_neighbor_ip }} prefix-list {{ isp | upcase }}-IN in
+{% endif %}
+!
+ip route vrf inet 10.0.0.0 255.0.0.0 {{ inet_pop_fwb_ip }}
+ip route vrf inet 172.16.0.0 255.240.0.0 {{ inet_pop_fwb_ip }}
+ip route vrf inet 192.168.0.0 255.255.0.0 {{ inet_pop_fwb_ip }}
+ip route {{ inet_pop_subnet | address }} {{ inet_pop_subnet | mask }} {{ fw_pop_fwb_ip }} name TOVLAN900
+ip route vrf inet 0.0.0.0 0.0.0.0 {{ inet_isp_ip }}
+ip route 0.0.0.0 0.0.0.0 {{ fw_pop_swc_ip }} 254 name FLOATING_DEFAULT_IN_BAND_MANAGEMENT
+ip route {{ peer_loopback_ip }} 255.255.255.255 {{ fw_pop_swc_ip }} name IDR02_LOO0
+{% endunless %}
+{% endif %}
+!
+! ---------------------------------------------------------------
+!				end idr_routing
+! ---------------------------------------------------------------
+!

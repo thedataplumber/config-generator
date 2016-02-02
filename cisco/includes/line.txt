@@ -1,17 +1,22 @@
+!
+! ---------------------------------------------------------------
+!				start line
+! ---------------------------------------------------------------
+!
 line con 0       
-  password {{credentials.line_con_pass}}
+  password {{ credentials.line_con_pass }}
   login local
   logging synchronous
   exec-timeout 30 0
 !       
 line aux 0
-  password {{credentials.line_aux_pass}}
+  password {{ credentials.line_aux_pass }}
   login
   logging synchronous
   exec-timeout 30 0
 !       
 line vty 0 4
-  password {{credentials.line_vty_pass}}
+  password {{ credentials.line_vty_pass }}
   login local
   logging synchronous
   access-class 98 in
@@ -21,3 +26,8 @@ line 2
 transport preferred none
 transport output none
 transport input none
+!
+! ---------------------------------------------------------------
+!				end line
+! ---------------------------------------------------------------
+!
