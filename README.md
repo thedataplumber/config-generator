@@ -1,6 +1,6 @@
 # README #
 
-# This repo is no longer maintained. #
+# **This repo is no longer maintained.** #
 
 The configuration templates are written using liquid: https://github.com/Shopify/liquid/wiki/Liquid-for-Designers.
 
