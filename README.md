@@ -6,7 +6,7 @@ The configuration templates are written using liquid: https://github.com/Shopify
 
 ### What is this repository for? ###
 
-The configuration templates that are deployed into the config-generator.ptns.pearson.com application.
+The configuration templates that are deployed into the config-generator application.
 
 ### How do I get set up? ###
 
