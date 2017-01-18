@@ -13,6 +13,3 @@ The configuration templates that are deployed into the config-generator.ptns.pea
 Currently there is no GIT interface into the web application, so this repo is just providing version control.  Configurations that are created should be manually installed into the config-generator.
 
 ### Who do I talk to? ###
-
-jody.gajic@pearson.com
-james.milner@pearson.com
